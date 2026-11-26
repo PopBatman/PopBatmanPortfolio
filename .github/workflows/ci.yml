@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validation:
+    name: Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify project documentation
+        shell: bash
+        run: |
+          for file in README.md AGENTS.md docs/PROJECT.md docs/ARCHITECTURE.md docs/DECISIONS.md docs/WORKFLOW.md .github/ISSUE_TEMPLATE/task.md .github/pull_request_template.md; do
+            if [[ ! -s "$file" ]]; then
+              echo "::error::Missing or empty required file: $file"
+              exit 1
+            fi
+          done
+
+      - name: Check changed lines
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: git diff --check "$BASE_SHA" HEAD
