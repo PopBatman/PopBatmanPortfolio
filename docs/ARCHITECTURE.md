@@ -56,39 +56,52 @@ Le dépôt actuel est PopBatman/PopBatmanPortfolio, privé. L'URL Pages par déf
 
 ## 2. Chaîne agentique
 
-GitHub est la source de vérité : Issues = contrats, Projects #4 = vue de pilotage, Git = code et documentation. Pas de n8n, Notion, VM ou serveur d'autorité en V1. Le propriétaire valide les décisions et reste seul responsable des fusions. ChatGPT propose et spécifie ; Codex implémente ; Actions orchestre et vérifie.
+GitHub est la source de vérité : Issues = contrats, Projects #4 = vue de pilotage, Git = code et documentation. ChatGPT cadre et rédige les tickets ; Codex implémente avec l'abonnement ChatGPT du propriétaire, dans la limite de ses quotas ; GitHub héberge le code, exécute les contrôles et déploie. Le propriétaire conserve la validation et la fusion.
+
+Contrainte validée le 26 novembre 2026 : pas de clé API OpenAI, pas de facturation API distincte, pas de Notion, n8n, VM personnelle, runner auto-hébergé ou service d'autorité. Aucun jeton de session ChatGPT ne doit être exporté ou stocké dans GitHub Actions. Actions ne sert qu'à la CI/CD.
 
 ```text
-Issue spécifiée → Ready → déclenchement explicite du propriétaire
-    → agent (branche dédiée, pas de credentials Git en écriture)
-    → patch + rapport → job de publication contrôlé
-    → commit + PR → CI → revue/fusion humaine → déploiement autorisé depuis main
+ChatGPT → Issue GitHub → Projects (Backlog)
+    → contrat Ready → autorisation explicite
+    → Codex Cloud (compte ChatGPT)
+    → diff, tests, branche/commit/PR selon capacités natives
+    → GitHub Actions CI → revue et fusion humaines
+    → GitHub Pages (après activation)
 ```
 
-| Mode | Avantage | Contrainte | Avis |
-|---|---|---|---|
-| Codex Cloud | Pas d'infrastructure, authentification ChatGPT | Démarrage depuis l'interface, quotas/accès à vérifier | Repli pour un pilote sans API |
-| Codex CLI local | Réutilise l'environnement existant | Machine disponible, orchestration et sécurité locales | Repli si coût API non accepté |
-| Action officielle openai/codex-action sur runner GitHub | Exécution répétable sans VM | Clé API et consommation distincte ; contrôle de la CI et des permissions | Cible proposée, non activée |
+### Modes et validation expérimentale
+
+| Mode | Décision | Limite |
+|---|---|---|
+| Déclenchement natif Codex par mention dans une Issue GitHub | Hypothèse à tester en priorité | Intégration Cloud Legacy annoncée en voie de dépréciation ; disponibilité et identité du déclencheur à vérifier |
+| Codex Cloud actuel, environnement GitHub réutilisable, lancement explicite via l'interface | Socle durable V1 et repli immédiat | Démarrage et ouverture de PR éventuellement manuels, quotas selon compte |
+| Codex CLI connecté au compte ChatGPT | Repli facultatif, hors V1 | Nécessite un poste disponible ; ne pas installer de runner |
+| Action openai/codex-action | Exclue | La configuration CI officielle repose sur une clé API séparée |
+
+Le lancement d'une tâche GitHub par mention a été annoncé par OpenAI le 22 octobre 2025. La documentation actuelle identifie l'intégration GitHub comme reposant sur les environnements Legacy dont la dépréciation est prévue. Ne pas en faire un prérequis durable. Le connecteur GitHub de cette conversation peut écrire les Issues et les PR, mais n'offre pas d'action directe de lancement Codex Cloud ; l'identité d'un commentaire créé par ce connecteur et sa reconnaissance par Codex doivent être testées séparément. Une mention publiée par le propriétaire est le premier test, pas une promesse de fonctionnement.
 
 ### Contrat et déroulement V1
 
 - Issue : objectif, périmètre/hors périmètre, contraintes, critères d'acceptation, tests, dépendances et Definition of Done.
-- Déclencheur initial proposé : workflow_dispatch exécuté par le propriétaire sur le workflow de main, avec numéro d'Issue et confirmation explicite. Vérifier acteur, branche, état ouvert et contrat approuvé, enregistrer la révision du contrat. Ready seul n'autorise jamais une exécution. Une tâche à la fois, durée et consommation bornées ; aucune boucle automatique de retry.
-- Branches feature/PORT-XXX, fix/PORT-XXX, chore/PORT-XXX ; plusieurs commits permis sans validation intermédiaire. Pas de branche develop permanente.
-- Agent : checkout de la base autorisée, permissions contents: read, persist-credentials: false ; action officielle épinglée à un SHA vérifié, sandbox workspace, secret API limité à l'invocation via proxy. Pas de secrets en environnement global, ni de jeton de publication dans le job agent. Les contenus de l'Issue et du code ne peuvent pas étendre son mandat.
-- Publication : job séparé, permissions minimales contents: write / pull-requests: write si nécessaires. Contrôler chemin de branche, base, périmètre et patch avant application ; refuser les fichiers de sécurité, workflows, permissions, secrets et changements hors contrat. Ne pas exécuter de scripts générés avec des credentials d'écriture. Un échec laisse main intacte et donne lieu à un rapport Blocked.
-- CI indépendante : pull_request, lecture seule, pas de secret API, tests sur le code de la PR. Le jeton GITHUB_TOKEN peut créer des runs de PR soumis à approbation ; vérifier sur le pilote. Pour une CI sans approbation intermédiaire, évaluer d'abord une CI explicite par workflow_dispatch avec ref contrôlée et vérifier que le résultat protège le SHA exact ; sinon GitHub App à permissions limitées. Pas de PAT large ajouté par défaut.
-- Protection main : exiger PR et contrôles CI ; interdire force-push et suppression ; aucun bypass agent. Ne pas exiger une approbation formelle impossible en solo ; propriétaire fusionne après revue des preuves. Vérifier l'efficacité de la protection avant toute exécution agent en écriture. En cas d'inéligibilité du dépôt privé, bloquer le lancement et arbitrer.
-- Déploiement : workflow séparé et permissions Pages limitées, uniquement depuis main après activation par le propriétaire. PR et agent ne peuvent pas déployer.
+- Ready signifie spécifiée, pas autorisée à démarrer. Le propriétaire autorise explicitement le pilote depuis son compte. Une tâche à la fois ; pas de déclenchement automatique sur toute création d'Issue, pas de boucle de retry.
+- Connecter uniquement le dépôt concerné à Codex ; préparer un environnement Cloud minimal et, si disponible, la configuration Legacy native nécessaire aux mentions. Aucun secret de production, aucun accès réseau inutile. Ne pas donner de jeton personnel supplémentaire à l'agent.
+- Codex travaille sur une branche feature/PORT-XXX, fix/PORT-XXX ou chore/PORT-XXX. Plusieurs commits de tâche sont permis. Ne jamais pousser sur main, fusionner, modifier les protections, les workflows de sécurité ou les permissions. Si le mode Cloud fournit seulement un diff, le propriétaire peut créer la PR depuis l'interface native ; enregistrer ce geste dans le bilan du pilote.
+- La protection GitHub de main est nécessaire avant toute délégation en écriture : exiger une PR et les contrôles CI disponibles, interdire force-push et suppression, aucun bypass agent. Ne pas imposer d'approbation formelle impossible en solo. Le propriétaire revoit le résultat et fusionne. Les instructions AGENTS.md ne remplacent pas la protection technique.
+- CI indépendante : pull_request, lecture seule, sans secret API ni secret de production. Vérifier le déclenchement réel pour une PR issue de Codex et la présence des contrôles sur le commit de tête. Si un clic d'approbation est nécessaire, l'assumer et le documenter avant d'envisager une solution supplémentaire.
+- Déploiement séparé depuis main uniquement, après activation et validation visuelle humaines. Pas de déploiement depuis Codex ou une PR.
 
 ### États
 
-Backlog = identifié ; Ready = contrat complet et dépendances levées ; In Progress = exécution autorisée ; Review = PR et contrôles ; Done = acceptée et fusionnée si applicable ; Blocked = cause et action requise documentées. Synchronisation automatique des états avancés à confirmer après le pilote ; pas de système supplémentaire en V1.
+Backlog = identifié ; Ready = contrat complet et dépendances levées ; In Progress = exécution autorisée ; Review = PR et contrôles ; Done = acceptée et fusionnée si applicable ; Blocked = cause et action requise. Les statuts peuvent être mis à jour manuellement au départ. N'automatiser les transitions avancées que si une fonction native suffit.
 
 ### Pilote et preuves
 
-Issue bénigne, modification Markdown, branche/commit/PR reliés à l'Issue, CI réussie et test négatif contrôlé, preuve que main est inchangée jusqu'à fusion humaine, coût/durée observés. Échec : conserver le diagnostic, aucune fusion automatique ; nouvelle exécution autorisée explicitement. Après succès, envisager une file de tâches Ready ; aucune autonomie en lot avant validation.
+1. Autoriser le dépôt dans Codex et vérifier l'environnement Cloud et les droits. Préparer main protégée, AGENTS.md et CI documentaire.
+2. Créer une Issue pilote bénigne, avec un fichier Markdown distinct et un résultat attendu vérifiable.
+3. Tester le déclenchement natif par le propriétaire si disponible. Observer réaction, lien de tâche Codex, modifications, tests et possibilité de créer une PR ; sinon démarrer la tâche depuis Codex Cloud avec le contrat exact.
+4. Vérifier branche, commit, PR, CI, main inchangée jusqu'à fusion humaine. Mesurer les interventions manuelles, durée et éventuelle consommation de quota ; aucune dépense API.
+5. Si le test natif réussit, tester ensuite sur une nouvelle tâche bénigne si un commentaire du connecteur ChatGPT peut déclencher Codex après autorisation explicite. En cas d'échec, garder le lancement humain. Ne pas chercher à contourner l'authentification.
+6. Conclusion : distinguer chaîne intégrée prouvée avec lancement humain, déclenchement natif prouvé, déclenchement ChatGPT → Codex prouvé. Ne qualifier la dernière chaîne de bout en bout que si les preuves existent.
 
 ## Références
 
@@ -98,5 +111,10 @@ Issue bénigne, modification Markdown, branche/commit/PR reliés à l'Issue, CI 
 - Limites Pages : https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits
 - Protection : https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches
 - Déclenchements : https://docs.github.com/en/actions/concepts/security/github_token
-- Action Codex : https://learn.chatgpt.com/docs/github-action
-- Codex en CI : https://learn.chatgpt.com/docs/non-interactive-mode
+- Codex avec ChatGPT : https://help.openai.com/fr-fr/articles/11369540-using-codex-with-your-chatgpt-plan
+- Cloud actuel : https://learn.chatgpt.com/docs/cloud
+- Environnements Cloud : https://learn.chatgpt.com/docs/environments/cloud-environments
+- Cloud Legacy : https://learn.chatgpt.com/docs/environments/cloud-environment
+- Annonce mentions GitHub (22/10/2025) : https://learn.chatgpt.com/docs/changelog
+- Cas Issue vers PR : https://learn.chatgpt.com/use-cases/issue-to-tested-pr
+- Action API exclue : https://learn.chatgpt.com/docs/github-action
