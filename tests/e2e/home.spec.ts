@@ -100,7 +100,7 @@ for (const width of [375, 768, 1024, 1440]) {
       await expect(page.getByRole("searchbox")).toBeHidden();
       await expect(
         page.getByRole("button", { name: "Ajouter un widget" }),
-      ).toBeDisabled();
+      ).toBeEnabled();
       await page.getByRole("button", { name: "Changer le thème" }).click();
       await expect(page.locator(".workspace")).toHaveAttribute(
         "data-theme",

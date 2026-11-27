@@ -6,6 +6,7 @@ import {
   ChevronDown,
   CodeXml,
   Heart,
+  Grip,
   Layers,
   Mail,
   Search,
@@ -13,47 +14,45 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import {
+  WIDGET_DRAG_TYPE,
+  widgetIds,
+  widgetRegistry,
+  type WidgetId,
+} from "./widget-registry";
+
 const categories = [
-  {
-    name: "Identité",
-    icon: UserRound,
-    widgets: ["Présentation", "Disponibilité", "CV"],
-  },
-  {
-    name: "Carrière",
-    icon: BriefcaseBusiness,
-    widgets: ["Expériences", "Formations"],
-  },
-  {
-    name: "Engineering",
-    icon: CodeXml,
-    widgets: ["Stack technique", "Expertises", "Architecture"],
-  },
-  {
-    name: "Réalisations",
-    icon: Layers,
-    widgets: ["Botty", "Workflow IA", "LeStudio"],
-  },
-  {
-    name: "Activité",
-    icon: Activity,
-    widgets: ["Activité GitHub", "Changelog"],
-  },
-  { name: "Personnel", icon: Heart, widgets: ["Centres d’intérêt"] },
-  { name: "Contact", icon: Mail, widgets: ["Contact", "Réseaux"] },
+  { id: "identity", name: "Identité", icon: UserRound },
+  { id: "career", name: "Carrière", icon: BriefcaseBusiness },
+  { id: "engineering", name: "Engineering", icon: CodeXml },
+  { id: "projects", name: "Réalisations", icon: Layers },
+  { id: "activity", name: "Activité", icon: Activity },
+  { id: "personal", name: "Personnel", icon: Heart },
+  { id: "contact", name: "Contact", icon: Mail },
 ];
 
-export function WidgetLibrary() {
+export function WidgetLibrary({
+  active,
+  desktop,
+  onAdd,
+  onDragWidget,
+}: {
+  active: WidgetId[];
+  desktop: boolean;
+  onAdd: (id: WidgetId) => void;
+  onDragWidget: (id: WidgetId | null) => void;
+}) {
   const [query, setQuery] = useState("");
   const search = query.trim().toLowerCase();
   const results = categories
     .map((category) => ({
       ...category,
-      widgets: category.name.toLowerCase().includes(search)
-        ? category.widgets
-        : category.widgets.filter((widget) =>
-            widget.toLowerCase().includes(search),
-          ),
+      widgets: widgetIds.filter(
+        (id) =>
+          widgetRegistry[id].category === category.id &&
+          (category.name.toLowerCase().includes(search) ||
+            widgetRegistry[id].title.toLowerCase().includes(search)),
+      ),
     }))
     .filter(({ widgets }) => widgets.length > 0);
 
@@ -86,13 +85,30 @@ export function WidgetLibrary() {
             />
           </summary>
           <ul>
-            {widgets.map((widget) => (
-              <li key={widget}>
-                <button type="button" disabled title="Ajout de widgets à venir">
-                  {widget}
-                </button>
-              </li>
-            ))}
+            {widgets.map((id) => {
+              const added = active.includes(id);
+              return (
+                <li key={id}>
+                  <button
+                    type="button"
+                    disabled={added}
+                    draggable={desktop && !added}
+                    title={added ? "Déjà affiché" : "Ajouter au workspace"}
+                    onClick={() => onAdd(id)}
+                    onDragStart={(event) => {
+                      if (added || !desktop) return;
+                      event.dataTransfer.effectAllowed = "copy";
+                      event.dataTransfer.setData(WIDGET_DRAG_TYPE, id);
+                      onDragWidget(id);
+                    }}
+                    onDragEnd={() => onDragWidget(null)}
+                  >
+                    <Grip size={14} aria-hidden="true" />{" "}
+                    {widgetRegistry[id].title}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </details>
       ))}
