@@ -17,7 +17,10 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useReducer, useState, useSyncExternalStore } from "react";
+import { Canvas } from "./canvas";
+import { initialLayout, workspaceReducer } from "./workspace-layout";
+import type { WidgetId } from "./widget-registry";
 import { WidgetLibrary } from "./widget-library";
 
 function Brand() {
@@ -32,12 +35,20 @@ function Sidebar({
   collapsed,
   mobileOpen,
   light,
+  active,
+  desktop,
+  onAdd,
+  onDragWidget,
   onCollapse,
   onTheme,
 }: {
   collapsed: boolean;
   mobileOpen: boolean;
   light: boolean;
+  active: WidgetId[];
+  desktop: boolean;
+  onAdd: (id: WidgetId) => void;
+  onDragWidget: (id: WidgetId | null) => void;
   onCollapse: () => void;
   onTheme: () => void;
 }) {
@@ -67,7 +78,12 @@ function Sidebar({
         </button>
       </div>
       <div id="sidebar-content" className="sidebar-content">
-        <WidgetLibrary />
+        <WidgetLibrary
+          active={active}
+          desktop={desktop}
+          onAdd={onAdd}
+          onDragWidget={onDragWidget}
+        />
         <div className="sidebar-actions">
           <div className="history-actions">
             <button type="button" disabled>
@@ -170,10 +186,25 @@ function Toolbar() {
   );
 }
 
-export function WorkspaceShell({ children }: { children: ReactNode }) {
+const desktopQuery = "(min-width: 901px)";
+
+function subscribeToViewport(notify: () => void) {
+  const query = matchMedia(desktopQuery);
+  query.addEventListener("change", notify);
+  return () => query.removeEventListener("change", notify);
+}
+
+export function WorkspaceShell() {
+  const desktop = useSyncExternalStore(
+    subscribeToViewport,
+    () => matchMedia(desktopQuery).matches,
+    () => false,
+  );
+  const [layout, dispatch] = useReducer(workspaceReducer, initialLayout);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [light, setLight] = useState(false);
+  const [draggedId, setDraggedId] = useState<WidgetId | null>(null);
 
   return (
     <div
@@ -200,12 +231,24 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
         collapsed={collapsed}
         mobileOpen={mobileOpen}
         light={light}
+        active={layout.mobileOrder}
+        desktop={desktop}
+        onDragWidget={setDraggedId}
+        onAdd={(id) => {
+          dispatch({ type: "add", id });
+          if (!desktop) setMobileOpen(false);
+        }}
         onCollapse={() => setCollapsed(!collapsed)}
         onTheme={() => setLight(!light)}
       />
       <div className="workspace-view">
         <Toolbar />
-        {children}
+        <Canvas
+          layout={layout}
+          dispatch={dispatch}
+          desktop={desktop}
+          draggedId={draggedId}
+        />
       </div>
       <div className="mobile-actions" aria-label="Actions mobiles">
         <button
@@ -221,8 +264,10 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
         <button
           className="icon-button"
           type="button"
-          disabled
           aria-label="Ajouter un widget"
+          aria-controls="workspace-sidebar"
+          aria-expanded={mobileOpen}
+          onClick={() => setMobileOpen(!mobileOpen)}
         >
           <Plus size={22} />
         </button>
