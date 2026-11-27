@@ -18,6 +18,7 @@ export function WidgetMenu({
   index,
   count,
   onClose,
+  onEnlarge,
   onLayer,
   onReorder,
   onPlace,
@@ -31,6 +32,7 @@ export function WidgetMenu({
   index: number;
   count: number;
   onClose: () => void;
+  onEnlarge: () => void;
   onLayer: (action: LayerAction) => void;
   onReorder: (step: -1 | 1) => void;
   onPlace: (rect: Rect) => void;
@@ -67,7 +69,9 @@ export function WidgetMenu({
       ref={dialogRef}
       className="widget-menu"
       aria-labelledby="widget-menu-label"
-      onClose={onClose}
+      onClose={(event) => {
+        if (!event.currentTarget.open) onClose();
+      }}
       onClick={(event) => {
         if (event.target === event.currentTarget) dialogRef.current?.close();
       }}
@@ -85,6 +89,9 @@ export function WidgetMenu({
           </button>
         </header>
         <div className="widget-menu-actions">
+          <button type="button" onClick={onEnlarge}>
+            Agrandir le widget
+          </button>
           {rect ? (
             layerButtons.map(([action, label]) => (
               <button

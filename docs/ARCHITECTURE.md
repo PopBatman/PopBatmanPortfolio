@@ -87,6 +87,15 @@ Voir [CONTENT.md](CONTENT.md). Le contenu statique typé et versionné est parta
 
 Activité GitHub : collecte quotidienne des seules données publiques lors d'un build statique déclenché par GitHub Actions. Pas de jeton client, pas d'accès à des données privées ni de push automatique sur main ; fixtures de CI, snapshot daté de repli ou état indisponible. Le workflow planifié de reconstruction/publication ne peut être activé qu'après validation de #14 et autorisation explicite. Cette extension reste du build/déploiement et ne déclenche pas d'agent. Le Changelog demeure versionné.
 
+### Persistance livrée (DEV-005, #39)
+
+- Zustand 5.1.0, store typé avec sélecteurs ciblés. `workspace-store.ts` porte la disposition, les préférences et l'historique ; `workspace-layout.ts` conserve les opérations pures ; `workspace-persistence.ts` valide les données au chargement.
+- Clé localStorage `popbatman-workspace`, version 1 : `layout.rects`, `layout.layers`, `layout.mobileOrder` et `preferences` (theme, sidebarCollapsed, language). La géométrie horizontale de référence utilise 1138 px, sans réécriture lors d'un changement de largeur. La borne verticale stockable est de 1 000 000 px.
+- Hydratation manuelle après montage (`skipHydration: true`). JSON invalide, version inconnue, identifiants non reconnus, coordonnées non finies, ordres incohérents ou préférences invalides : repli initial. Un layout volontairement vide est accepté. Les erreurs de lecture/écriture sont absorbées pour conserver une session utilisable ; aucune garantie de conservation après reload si le stockage est bloqué ou saturé. Pas de migration d'ancienne version implémentée à ce stade. Pas de synchronisation entre appareils.
+- Historique de 50 transactions en mémoire, actions sans effet ignorées ; toute nouvelle modification après undo invalide redo. Undo/redo, ajout/suppression, position, dimensions, couches et ordre mobile. Reset confirmé et annulable, sans modifier les préférences. Les previews de drag/resize et modes temporaires ne sont pas persistés.
+- Présentation en lecture seule et plein écran temporaire (natif ou repli CSS) ; ils ne changent pas le layout sauvegardé. Langue typée FR/EN mais bascule effective réservée à #26.
+- CI indépendante #39 (run 46026620283) réussie, fusion par le propriétaire sur main `48d282b`. Les captures supplémentaires DEV-005 et un rapport de tests manuels ne sont pas disponibles ; ne pas présenter cette preuve CI comme une validation manuelle détaillée. Le parcours de réajout via bibliothèque d'un widget initial supprimé reste à vérifier dans la QA globale.
+
 ### Contraintes de publication
 
 Utiliser output: 'export' et trailingSlash: true ; next build produit out/. Générer toutes les routes dynamiques au build (generateStaticParams). Pas de SSR à la demande, Server Actions ou optimisation d'images nécessitant un serveur. Préparer les images à l'avance ou utiliser un chargeur compatible.

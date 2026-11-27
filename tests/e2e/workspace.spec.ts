@@ -82,6 +82,19 @@ test("drags freely, snaps to a guide, overlaps and resizes past the initial canv
   expect((await canvas(page).boundingBox())!.height).toBeGreaterThan(
     initialBottom.height,
   );
+
+  const toolbar = page.locator(".toolbar");
+  const undo = toolbar.getByRole("button", { name: "Annuler" });
+  await undo.click();
+  await expect(last).toHaveCSS("height", `${before.height}px`);
+  expect(await botty.boundingBox()).toEqual(moved);
+  await undo.click();
+  expect(await botty.boundingBox()).toEqual(source);
+  await expect(undo).toBeDisabled();
+  const redo = toolbar.getByRole("button", { name: "Rétablir" });
+  await redo.click();
+  await redo.click();
+  await expect(last).toHaveCSS("height", `${after.height}px`);
 });
 
 test("manages layers and edits geometry from the keyboard across responsive changes", async ({

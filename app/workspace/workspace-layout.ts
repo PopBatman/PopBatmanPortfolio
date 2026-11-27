@@ -60,7 +60,7 @@ export function newWidgetRect(id: WidgetId, y: number): Rect {
   };
 }
 
-export function workspaceReducer(
+export function applyLayoutAction(
   state: WorkspaceLayout,
   action: LayoutAction,
 ): WorkspaceLayout {
@@ -90,17 +90,22 @@ export function workspaceReducer(
         mobileOrder: state.mobileOrder.filter((item) => item !== id),
       };
     }
-    case "place":
-      return { ...state, rects: { ...state.rects, [id]: action.rect } };
-    case "reorder":
-      return {
-        ...state,
-        mobileOrder: moveItem(
-          state.mobileOrder,
-          id,
-          state.mobileOrder.indexOf(id) + action.step,
-        ),
-      };
+    case "place": {
+      const previous = state.rects[id];
+      const next = action.rect;
+      if (sameRect(previous, next)) return state;
+      return { ...state, rects: { ...state.rects, [id]: next } };
+    }
+    case "reorder": {
+      const mobileOrder = moveItem(
+        state.mobileOrder,
+        id,
+        state.mobileOrder.indexOf(id) + action.step,
+      );
+      return mobileOrder === state.mobileOrder
+        ? state
+        : { ...state, mobileOrder };
+    }
     case "layer": {
       const position = state.layers.indexOf(id);
       const destinations = {
@@ -109,10 +114,17 @@ export function workspaceReducer(
         backward: position - 1,
         back: 0,
       };
-      return {
-        ...state,
-        layers: moveItem(state.layers, id, destinations[action.action]),
-      };
+      const layers = moveItem(state.layers, id, destinations[action.action]);
+      return layers === state.layers ? state : { ...state, layers };
     }
   }
+}
+
+export function sameRect(a: Rect, b: Rect) {
+  return (
+    Math.abs(a.x - b.x) < 1e-6 &&
+    Math.abs(a.y - b.y) < 1e-6 &&
+    Math.abs(a.width - b.width) < 1e-6 &&
+    Math.abs(a.height - b.height) < 1e-6
+  );
 }
