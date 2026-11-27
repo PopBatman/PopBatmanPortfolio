@@ -6,3 +6,8 @@
 /playwright-report/
 /test-results/
 /coverage/
+
+# Local environment configuration
+.env
+.env.*
+!.env.example
