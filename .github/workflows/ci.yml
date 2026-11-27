@@ -15,7 +15,7 @@ jobs:
   validation:
     name: Validation
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -39,3 +39,28 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: git diff --check "$BASE_SHA" HEAD
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+
+      - name: Verify static export at the root
+        run: |
+          npm run build
+          npm run test:e2e
+
+      - name: Verify static export under the GitHub Pages base path
+        env:
+          NEXT_PUBLIC_BASE_PATH: /PopBatmanPortfolio
+        run: |
+          npm run build
+          npm run test:e2e
