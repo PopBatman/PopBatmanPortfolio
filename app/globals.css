@@ -1024,3 +1024,26 @@
   padding-top: 12px;
   border-top: 1px solid var(--border);
 }
+
+.timeline .detail-link {
+  min-height: 26px;
+  font-family: inherit;
+  font-size: inherit;
+}
+.timeline .timeline-technologies {
+  margin-top: 3px;
+  font-size: 11px;
+}
+.professional-section {
+  margin-top: 16px;
+}
+.professional-section ul {
+  margin-top: 6px;
+}
+.professional-section ul:not(.stack) {
+  list-style: disc;
+  padding-inline-start: 20px;
+}
+.professional-section ul:not(.stack) li + li {
+  margin-top: 4px;
+}

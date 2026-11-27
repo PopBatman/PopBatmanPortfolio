@@ -15,6 +15,8 @@ import {
   PROFILE_ID,
   availability,
   approvedCopy,
+  formatYears,
+  publishedEntries,
   profile,
   relatedDetails,
 } from "../content/professional-content";
@@ -105,16 +107,57 @@ function Contact() {
 }
 
 function Experience() {
+  const entries = publishedEntries("experience", "fr").sort(
+    (a, b) =>
+      b.entity.period.start - a.entity.period.start ||
+      (b.entity.period.end ?? Infinity) - (a.entity.period.end ?? Infinity),
+  );
+  return (
+    <ol className="timeline">
+      {entries.map(({ entity, copy }) => (
+        <li key={entity.id}>
+          <strong>
+            <DetailsButton id={entity.id}>{copy.title}</DetailsButton>
+          </strong>
+          <p>
+            {entity.role.fr} · {formatYears(entity.period, "fr")}
+          </p>
+          {entity.technologies.length > 0 && (
+            <p className="timeline-technologies">
+              {entity.technologies.join(" · ")}
+            </p>
+          )}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function Education() {
   return (
     <ul className="timeline">
-      <li>
-        <strong>Parcours professionnel</strong>
-        <p>Expériences à venir</p>
-      </li>
-      <li>
-        <strong>Formations</strong>
-        <p>Informations à venir</p>
-      </li>
+      {publishedEntries("education", "fr").map(({ entity, copy }) => (
+        <li key={entity.id}>
+          <strong>
+            <DetailsButton id={entity.id}>{copy.title}</DetailsButton>
+          </strong>
+          {entity.period && (
+            <p>
+              {entity.institution?.fr} · {formatYears(entity.period, "fr")}
+            </p>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function Interests() {
+  return (
+    <ul className="stack">
+      {publishedEntries("interest", "fr").map(({ entity, copy }) => (
+        <li key={entity.id}>{copy.title}</li>
+      ))}
     </ul>
   );
 }
@@ -226,13 +269,13 @@ export const widgetRegistry = {
   workflow: widget("Workflow agentique", "projects", 195, 110, Workflow),
   lestudio: widget("LeStudio", "projects", 180, 110, LeStudio),
   cv: widget("CV", "identity", 176, 105),
-  formations: widget("Formations", "career", 180, 105),
+  formations: widget("Formations", "career", 180, 105, Education),
   expertises: widget("Expertises", "engineering", 180, 105),
   architecture: widget("Architecture", "engineering", 180, 105),
   portfolio: widget("Portfolio", "projects", 180, 105),
   activite: widget("Activité GitHub", "activity", 190, 105),
   changelog: widget("Changelog", "activity", 180, 105),
-  interets: widget("Centres d’intérêt", "personal", 180, 105),
+  interets: widget("Centres d’intérêt", "personal", 180, 105, Interests),
   reseaux: widget("Réseaux", "contact", 176, 105),
 };
 
