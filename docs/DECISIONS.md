@@ -75,3 +75,7 @@ Voir [CONTENT.md](CONTENT.md). Les ateliers valident les concepts et le périmè
 ## Livraison DEV-005 (27/11/2026)
 
 DEC-016/017 : Zustand persist v1, historique limité à 50 transactions en mémoire et reset de disposition annulable livrés par #39, CI verte. Voir ARCHITECTURE.md pour le modèle concret et les limites. La préférence de langue est préparée mais l'internationalisation demeure #26.
+
+## Périmètre des études de cas V1
+
+Botty est l’unique étude de cas personnelle de la V1 (#35). LeStudio, Workflow agentique et Portfolio sont reportés. L’expertise IA agentique reste au catalogue. Le diagramme de Botty présente une architecture conceptuelle soumise à validation et son statut opérationnel est daté de l’atelier éditorial. Les anciens espaces de travail sont relus en retirant uniquement ces trois widgets.

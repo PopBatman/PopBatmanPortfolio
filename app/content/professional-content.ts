@@ -1,3 +1,4 @@
+import { bottyContent, type ArchitectureDiagram } from "./botty-content";
 import { technicalContent } from "./technical-content";
 import {
   autonomyLevels,
@@ -43,7 +44,7 @@ type EntityFields = {
   project: {
     stage?: "prototype" | "experiment" | "development" | "operational";
   };
-  architecture: object;
+  architecture: { diagram?: ArchitectureDiagram };
   education: {
     period?: YearRange;
     institution?: Localized<string>;
@@ -132,7 +133,13 @@ export const availability: Entity<"availability"> = {
 
 export const professionalContent: ContentCatalog = {
   version: 1,
-  entities: [profile, availability, ...technicalContent, ...careerContent],
+  entities: [
+    profile,
+    availability,
+    ...technicalContent,
+    ...careerContent,
+    ...bottyContent,
+  ],
 };
 
 export function approvedCopy(entity: Entity, locale: Locale) {
@@ -200,6 +207,24 @@ export function validateContent(catalog: ContentCatalog): string[] {
       !Object.hasOwn(autonomyLevels, entity.level)
     ) {
       errors.push(`Autonomie invalide : ${entity.id}`);
+    }
+    if (entity.kind === "architecture" && entity.diagram) {
+      const ids = new Set(entity.diagram.nodes.map(({ id }) => id));
+      if (
+        ids.size !== entity.diagram.nodes.length ||
+        entity.diagram.nodes.some(
+          ({ id, label, role }) => !id.trim() || !label.trim() || !role.trim(),
+        ) ||
+        entity.diagram.connections.some(
+          ({ from, to, description }) =>
+            from === to ||
+            !ids.has(from) ||
+            !ids.has(to) ||
+            !description.trim(),
+        )
+      ) {
+        errors.push(`Schéma d’architecture invalide : ${entity.id}`);
+      }
     }
     if (entity.status === "approved" && !approvedCopy(entity, "fr")) {
       errors.push(`Version française non approuvée : ${entity.id}`);

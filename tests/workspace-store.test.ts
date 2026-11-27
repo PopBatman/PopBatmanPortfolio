@@ -50,7 +50,7 @@ describe("workspace history", () => {
       id: "botty",
       rect: { ...original, y: original.y + 6 },
     });
-    dispatch({ type: "layer", id: "lestudio", action: "front" });
+    dispatch({ type: "layer", id: "botty", action: "front" });
     dispatch({ type: "reorder", id: "presentation", step: -1 });
     expect(storage.setItem).toHaveBeenCalledTimes(calls);
     expect(store.getState().future).toHaveLength(49);

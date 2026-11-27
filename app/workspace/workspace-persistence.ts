@@ -6,6 +6,7 @@ import type { WorkspaceLayout } from "./workspace-layout";
 export const WORKSPACE_STORAGE_KEY = "popbatman-workspace";
 export const WORKSPACE_STORAGE_VERSION = 1;
 export const MAX_CANVAS_BOTTOM = 1_000_000;
+const retiredWidgets = new Set(["workflow", "lestudio", "portfolio"]);
 
 export type Preferences = {
   theme: "dark" | "light";
@@ -47,10 +48,12 @@ export function isStorableRect(id: WidgetId, rect: Rect) {
 }
 
 function decodeOrder(value: unknown, active: Set<WidgetId>): WidgetId[] | null {
-  if (!Array.isArray(value) || value.length !== active.size) return null;
+  if (!Array.isArray(value)) return null;
+  const retained = value.filter((id) => !retiredWidgets.has(id));
+  if (retained.length !== active.size) return null;
   const remaining = new Set(active);
   const order: WidgetId[] = [];
-  for (const id of value) {
+  for (const id of retained) {
     if (typeof id !== "string" || !isWidgetId(id) || !remaining.delete(id))
       return null;
     order.push(id);
@@ -78,6 +81,7 @@ export function decodeWorkspace(value: unknown): PersistedWorkspace | null {
   const validRects: WorkspaceLayout["rects"] = {};
   const active = new Set<WidgetId>();
   for (const [id, candidate] of Object.entries(rects)) {
+    if (retiredWidgets.has(id)) continue;
     if (!isWidgetId(id)) return null;
     const rect = decodeRect(id, candidate);
     if (!rect) return null;
@@ -97,6 +101,19 @@ export function decodeWorkspace(value: unknown): PersistedWorkspace | null {
   };
 }
 
+function containsRetiredWidgets(value: unknown) {
+  if (!isRecord(value) || !isRecord(value.layout)) return false;
+  const { rects, layers, mobileOrder } = value.layout;
+  return (
+    (isRecord(rects) &&
+      Object.keys(rects).some((id) => retiredWidgets.has(id))) ||
+    [layers, mobileOrder].some(
+      (order) =>
+        Array.isArray(order) && order.some((id) => retiredWidgets.has(id)),
+    )
+  );
+}
+
 export const workspaceStorage: PersistStorage<PersistedWorkspace> = {
   getItem(name) {
     try {
@@ -106,7 +123,11 @@ export const workspaceStorage: PersistStorage<PersistedWorkspace> = {
       if (!isRecord(value) || value.version !== WORKSPACE_STORAGE_VERSION)
         return null;
       const state = decodeWorkspace(value.state);
-      return state ? { state, version: WORKSPACE_STORAGE_VERSION } : null;
+      if (!state) return null;
+      const snapshot = { state, version: WORKSPACE_STORAGE_VERSION };
+      if (containsRetiredWidgets(value.state))
+        workspaceStorage.setItem(name, snapshot);
+      return snapshot;
     } catch {
       return null;
     }

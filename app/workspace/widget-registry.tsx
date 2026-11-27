@@ -1,12 +1,4 @@
-import {
-  BarChart3,
-  Circle,
-  GitFork,
-  Layers3,
-  Mail,
-  Network,
-  type LucideIcon,
-} from "lucide-react";
+import { BarChart3, Circle, GitFork, Mail } from "lucide-react";
 import {
   AVAILABILITY_ID,
   PROFILE_ID,
@@ -24,6 +16,7 @@ import {
   STACK_ID,
 } from "../content/technical-content";
 import { autonomyLevels } from "../content/technical-classification";
+import { BOTTY_ID, BOTTY_ARCHITECTURE_ID } from "../content/botty-content";
 import { DetailsButton } from "./professional-details";
 import type { ComponentType } from "react";
 import type { Size } from "./geometry";
@@ -196,51 +189,22 @@ function Expertise() {
 
 function Botty() {
   return (
-    <Project
-      icon={BarChart3}
-      title="Botty"
-      description="Assistant financier personnel"
-    />
-  );
-}
-
-function Workflow() {
-  return (
-    <Project
-      icon={Network}
-      title="Workflow IA"
-      description="ChatGPT · Codex · GitHub"
-    />
-  );
-}
-
-function LeStudio() {
-  return (
-    <Project
-      icon={Layers3}
-      title="LeStudio"
-      description="Plateforme de création web"
-    />
-  );
-}
-
-function Project({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-}) {
-  return (
     <div className="project">
-      <Icon size={26} aria-hidden="true" />
+      <BarChart3 size={26} aria-hidden="true" />
       <div>
-        <h3>{title}</h3>
-        <p>{description}</p>
+        <h3>Botty</h3>
+        <p>Signaux d’achat et de vente</p>
+        <DetailsButton id={BOTTY_ID}>Consulter l’étude de cas</DetailsButton>
       </div>
     </div>
+  );
+}
+
+function Architecture() {
+  return (
+    <DetailsButton id={BOTTY_ARCHITECTURE_ID}>
+      Architecture de Botty
+    </DetailsButton>
   );
 }
 
@@ -285,13 +249,10 @@ export const widgetRegistry = {
   stack: widget("Stack technique", "engineering", 230, 145, Stack),
 
   botty: widget("Botty", "projects", 180, 110, Botty),
-  workflow: widget("Workflow agentique", "projects", 195, 110, Workflow),
-  lestudio: widget("LeStudio", "projects", 180, 110, LeStudio),
   cv: widget("CV", "identity", 176, 105),
   formations: widget("Formations", "career", 180, 105, Education),
   expertises: widget("Expertises", "engineering", 180, 105, Expertise),
-  architecture: widget("Architecture", "engineering", 180, 105),
-  portfolio: widget("Portfolio", "projects", 180, 105),
+  architecture: widget("Architecture", "engineering", 180, 105, Architecture),
   activite: widget("Activité GitHub", "activity", 190, 105),
   changelog: widget("Changelog", "activity", 180, 105),
   interets: widget("Centres d’intérêt", "personal", 180, 105, Interests),

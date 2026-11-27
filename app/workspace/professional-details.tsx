@@ -24,6 +24,7 @@ import {
   type TechnologyCategory,
   type TechnologyUsage,
 } from "../content/technical-classification";
+import { InteractiveArchitecture } from "./architecture-diagram";
 import { WorkspaceDialog } from "./workspace-dialog";
 
 const openDetails = createContext<
@@ -194,14 +195,13 @@ function ProfessionalDialog({
         </section>
       ))}
       {entity.kind === "experience" && entity.technologies.length > 0 && (
-        <section className="professional-section">
-          <h3>Technologies utilisées</h3>
-          <ul className="stack">
-            {entity.technologies.map((technology) => (
-              <li key={technology}>{technology}</li>
-            ))}
-          </ul>
-        </section>
+        <CareerTechnologies
+          entity={entity}
+          onNavigate={(id) => setPath((previous) => [...previous, id])}
+        />
+      )}
+      {entity.kind === "architecture" && entity.diagram && (
+        <InteractiveArchitecture key={entity.id} diagram={entity.diagram} />
       )}
       {entity.kind === "technology" && (
         <dl className="professional-terms">
@@ -325,5 +325,47 @@ function DetailLinks({
         </li>
       ))}
     </ul>
+  );
+}
+
+function CareerTechnologies({
+  entity,
+  onNavigate,
+}: {
+  entity: Entity<"experience">;
+  onNavigate: (id: EntityId<"technology">) => void;
+}) {
+  const catalog = publishedEntries("technology", "fr").filter(
+    ({ entity: technology }) => technology.related.includes(entity.id),
+  );
+  return (
+    <section className="professional-section">
+      <h3>Technologies utilisées</h3>
+      <ul className="stack">
+        {entity.technologies.map((label) => {
+          const linked = catalog.find(
+            ({ copy }) =>
+              copy.title === label ||
+              (label === "React" && copy.title === "React.js"),
+          );
+          return (
+            <li key={label}>
+              {linked ? (
+                <button
+                  className="detail-link"
+                  type="button"
+                  onClick={() => onNavigate(linked.entity.id)}
+                >
+                  {label}
+                  <ChevronRight size={14} aria-hidden="true" />
+                </button>
+              ) : (
+                label
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

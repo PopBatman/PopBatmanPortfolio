@@ -25,7 +25,7 @@ test("serves the static dashboard and its local fonts", async ({
   });
   await expect(heading).toBeVisible();
   await expect(heading).toHaveCSS("font-weight", "700");
-  await expect(page.locator("main .widget")).toHaveCount(8);
+  await expect(page.locator("main .widget")).toHaveCount(6);
   const fonts = await page.evaluate(async () => {
     await document.fonts.ready;
     return [...document.fonts]
