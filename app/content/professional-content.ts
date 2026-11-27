@@ -1,6 +1,15 @@
+import { careerContent } from "./career-content";
+
 export type Locale = "fr" | "en";
 export type Localized<T> = { fr: T; en?: T };
 type Status = "draft" | "approved";
+
+export type YearRange = { start: number; end: number | null };
+
+export function formatYears({ start, end }: YearRange, locale: Locale) {
+  if (start === end) return String(start);
+  return `${start} – ${end ?? (locale === "fr" ? "Aujourd’hui" : "Present")}`;
+}
 
 type EntityFields = {
   profile: { initials: string };
@@ -12,7 +21,12 @@ type EntityFields = {
       targets: string[];
     }>;
   };
-  experience: { period?: string };
+  experience: {
+    period: YearRange;
+    role: Localized<string>;
+    contract?: Localized<string>;
+    technologies: readonly string[];
+  };
   technology: {
     domain?: string;
     usage?: "professional" | "personal" | "learning";
@@ -22,7 +36,11 @@ type EntityFields = {
     stage?: "prototype" | "experiment" | "development" | "operational";
   };
   architecture: object;
-  education: { outcome?: "earned" | "in-progress" | "self-taught" };
+  education: {
+    period?: YearRange;
+    institution?: Localized<string>;
+    outcome?: "earned" | "in-progress" | "self-taught";
+  };
   interest: object;
   document: {
     variant: "general" | "technical" | "leadership";
@@ -37,7 +55,12 @@ type EntityFields = {
 
 export type EntityKind = keyof EntityFields;
 export type EntityId<K extends EntityKind = EntityKind> = `${K}:${string}`;
-type Copy = { status: Status; title: string; paragraphs?: string[] };
+type Copy = {
+  status: Status;
+  title: string;
+  paragraphs?: string[];
+  sections?: { title: string; items: string[] }[];
+};
 
 export type Entity<K extends EntityKind = EntityKind> = {
   [Kind in K]: EntityFields[Kind] & {
@@ -121,6 +144,7 @@ export const professionalContent: ContentCatalog = {
     expertise("expertise:architecture-logicielle", "Architecture logicielle"),
     expertise("expertise:pilotage-technique", "Pilotage technique"),
     expertise("expertise:ia-agentique", "IA agentique"),
+    ...careerContent,
   ],
 };
 
@@ -147,6 +171,20 @@ export function relatedDetails(entity: Entity, locale: Locale) {
   });
 }
 
+export function publishedEntries<K extends EntityKind>(
+  kind: K,
+  locale: Locale,
+) {
+  return professionalContent.entities
+    .filter(
+      (entity): entity is Extract<Entity, { kind: K }> => entity.kind === kind,
+    )
+    .flatMap((entity) => {
+      const copy = approvedCopy(entity, locale);
+      return copy ? [{ entity, copy }] : [];
+    });
+}
+
 export function validateContent(catalog: ContentCatalog): string[] {
   const errors: string[] = [];
   const index = new Map<EntityId, Entity>();
@@ -166,14 +204,48 @@ export function validateContent(catalog: ContentCatalog): string[] {
     if (entity.status === "approved" && !approvedCopy(entity, "fr")) {
       errors.push(`Version française non approuvée : ${entity.id}`);
     }
+    if (
+      (entity.kind === "experience" || entity.kind === "education") &&
+      entity.period
+    ) {
+      const { start, end } = entity.period;
+      if (
+        !Number.isInteger(start) ||
+        start < 1900 ||
+        (end !== null && (!Number.isInteger(end) || end < start))
+      ) {
+        errors.push(`Période invalide : ${entity.id}`);
+      }
+    }
     for (const locale of ["fr", "en"] as const) {
       const copy = approvedCopy(entity, locale);
       if (!copy) continue;
       if (
         !copy.title.trim() ||
-        copy.paragraphs?.some((paragraph) => !paragraph.trim())
+        copy.paragraphs?.some((paragraph) => !paragraph.trim()) ||
+        copy.sections?.some(
+          ({ title, items }) =>
+            !title.trim() ||
+            !items.length ||
+            items.some((item) => !item.trim()),
+        )
       ) {
         errors.push(`Texte approuvé vide : ${entity.id} (${locale})`);
+      }
+      if (
+        entity.kind === "experience" &&
+        (!entity.role[locale]?.trim() ||
+          (entity.contract && !entity.contract[locale]?.trim()) ||
+          entity.technologies.some((name) => !name.trim()))
+      ) {
+        errors.push(`Expérience incomplète : ${entity.id} (${locale})`);
+      }
+      if (
+        entity.kind === "education" &&
+        entity.institution &&
+        !entity.institution[locale]?.trim()
+      ) {
+        errors.push(`Organisme manquant : ${entity.id} (${locale})`);
       }
       if (entity.kind === "availability") {
         const terms = entity.terms[locale];

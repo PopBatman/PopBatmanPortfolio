@@ -5,6 +5,10 @@ test("opens the profile, navigates related details and restores keyboard focus o
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("./");
+  await expect(page.locator(".canvas-grid")).toHaveAttribute(
+    "data-free",
+    "true",
+  );
   const profile = page.locator('[data-widget="presentation"]');
   await expect(
     profile.getByRole("heading", { name: "Développeur polyvalent" }),
@@ -43,7 +47,7 @@ test("opens the profile, navigates related details and restores keyboard focus o
     dialog.getByText(/Chef de projet technique.*DevOps/),
   ).toBeVisible();
   await page.keyboard.press("Escape");
-  await expect(dialog).toHaveCount(0);
+  await expect(page.locator("dialog.professional-dialog")).toHaveCount(0);
   await expect(trigger).toBeFocused();
 });
 
@@ -97,4 +101,38 @@ test("closes only the detail dialog when it opens from a fullscreen widget", asy
   await page.keyboard.press("Escape");
   await expect(fullscreen).toBeVisible();
   await expect(trigger).toBeFocused();
+});
+
+test("ignores stale close events when opening another detail", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("./");
+  await expect(page.locator(".canvas-grid")).toHaveAttribute(
+    "data-free",
+    "true",
+  );
+  await page.getByRole("button", { name: "Consulter le profil" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toHaveAccessibleName("Développeur polyvalent");
+
+  const next = page
+    .locator('[data-widget="disponibilite"]')
+    .getByRole("button", { name: "Détails" });
+  await next.evaluate((button) => {
+    if (!(button instanceof HTMLButtonElement)) {
+      throw new Error("Expected a detail button");
+    }
+    document
+      .querySelector<HTMLDialogElement>("dialog.professional-dialog")
+      ?.close();
+    button.click();
+  });
+
+  await expect(dialog).toHaveAccessibleName(
+    "À l’écoute de nouvelles opportunités",
+  );
+  await page.keyboard.press("Escape");
+  await expect(page.locator("dialog.professional-dialog")).toHaveCount(0);
+  await expect(next).toBeFocused();
 });
