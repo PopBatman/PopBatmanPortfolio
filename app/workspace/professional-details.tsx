@@ -20,25 +20,38 @@ const openDetails = createContext<
   ((id: EntityId, trigger: HTMLButtonElement) => void) | null
 >(null);
 
+type DetailSession = {
+  id: EntityId;
+  trigger: HTMLButtonElement;
+  sequence: number;
+};
+
 export function ProfessionalDetails({ children }: { children: ReactNode }) {
-  const [selected, setSelected] = useState<EntityId | null>(null);
-  const origin = useRef<HTMLButtonElement | null>(null);
+  const [selected, setSelected] = useState<DetailSession | null>(null);
+  const active = useRef<DetailSession | null>(null);
+  const sequence = useRef(0);
   return (
     <openDetails.Provider
       value={(id, trigger) => {
-        origin.current = trigger;
-        setSelected(id);
+        const session = { id, trigger, sequence: ++sequence.current };
+        active.current = session;
+        setSelected(session);
       }}
     >
       {children}
       {selected && (
         <ProfessionalDialog
-          initial={selected}
+          key={selected.sequence}
+          initial={selected.id}
           onClose={() => {
+            // A native close event may arrive after a new detail was opened.
+            if (active.current !== selected) return;
+            active.current = null;
             setSelected(null);
-            requestAnimationFrame(() =>
-              origin.current?.focus({ preventScroll: true }),
-            );
+            requestAnimationFrame(() => {
+              if (sequence.current === selected.sequence)
+                selected.trigger.focus({ preventScroll: true });
+            });
           }}
         />
       )}

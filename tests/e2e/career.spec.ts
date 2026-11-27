@@ -5,6 +5,10 @@ test("orders all experiences and opens detailed and concise career records", asy
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("./");
+  await expect(page.locator(".canvas-grid")).toHaveAttribute(
+    "data-free",
+    "true",
+  );
   const timeline = page.locator('[data-widget="experiences"]');
   await expect(
     timeline.getByRole("button").filter({ hasText: /./ }),
@@ -42,11 +46,14 @@ test("orders all experiences and opens detailed and concise career records", asy
   ).toBeFocused();
   await dialog.getByRole("button", { name: "Fiche précédente" }).click();
   await page.keyboard.press("Escape");
+  await expect(page.locator("dialog.professional-dialog")).toHaveCount(0);
   await expect(gendarmerie).toBeFocused();
 
-  await timeline
-    .getByRole("button", { name: "Armée de l’air et de l’espace" })
-    .press("Enter");
+  const army = timeline.getByRole("button", {
+    name: "Armée de l’air et de l’espace",
+  });
+  await army.press("Enter");
+  await expect(dialog).toHaveAccessibleName("Armée de l’air et de l’espace");
   await expect(
     dialog.getByText("Ingénieur R&D / Officier sous contrat"),
   ).toBeVisible();
@@ -55,21 +62,33 @@ test("orders all experiences and opens detailed and concise career records", asy
     dialog.getByText("Django REST Framework", { exact: true }),
   ).toBeVisible();
   await page.keyboard.press("Escape");
+  await expect(page.locator("dialog.professional-dialog")).toHaveCount(0);
+  await expect(army).toBeFocused();
 
-  await timeline.getByRole("button", { name: "Elée" }).press("Enter");
+  const elee = timeline.getByRole("button", { name: "Elée" });
+  await elee.press("Enter");
+  await expect(dialog).toHaveAccessibleName("Elée");
   await expect(dialog.getByText("2021", { exact: true })).toBeVisible();
   await expect(
     dialog.getByText(/rôle informel de référent frontend/),
   ).toBeVisible();
   await page.keyboard.press("Escape");
-  await timeline.getByRole("button", { name: "VITIS" }).press("Enter");
+  await expect(page.locator("dialog.professional-dialog")).toHaveCount(0);
+  await expect(elee).toBeFocused();
+  const vitis = timeline.getByRole("button", { name: "VITIS" });
+  await vitis.press("Enter");
+  await expect(dialog).toHaveAccessibleName("VITIS");
   await expect(dialog.getByText("Alternance puis CDD")).toBeVisible();
   await page.keyboard.press("Escape");
+  await expect(page.locator("dialog.professional-dialog")).toHaveCount(0);
+  await expect(vitis).toBeFocused();
   const leaseplan = timeline.getByRole("button", { name: "LeasePlan" });
   await leaseplan.press("Enter");
+  await expect(dialog).toHaveAccessibleName("LeasePlan");
   await expect(dialog.getByText("Stage puis alternance")).toBeVisible();
   await expect(dialog.getByText("JHipster", { exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
+  await expect(page.locator("dialog.professional-dialog")).toHaveCount(0);
   await expect(leaseplan).toBeFocused();
 });
 
