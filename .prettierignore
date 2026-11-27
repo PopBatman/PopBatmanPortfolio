@@ -1,0 +1,13 @@
+# Preserve the formatting of existing project documentation and templates.
+/AGENTS.md
+/docs/
+/.github/ISSUE_TEMPLATE/
+/.github/pull_request_template.md
+
+/node_modules/
+/.next/
+/out/
+/next-env.d.ts
+/playwright-report/
+/test-results/
+/coverage/
