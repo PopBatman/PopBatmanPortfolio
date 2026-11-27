@@ -9,6 +9,7 @@ const contentTypes = {
   ".css": "text/css",
   ".js": "text/javascript",
   ".txt": "text/plain; charset=utf-8",
+  ".woff2": "font/woff2",
 };
 
 createServer(async (request, response) => {
