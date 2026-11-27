@@ -1,13 +1,7 @@
 "use client";
 
-import { Grip, MoreHorizontal } from "lucide-react";
-import {
-  useEffect,
-  useRef,
-  useState,
-  type Dispatch,
-  type DragEvent,
-} from "react";
+import { Grip, Maximize, MoreHorizontal, X } from "lucide-react";
+import { useEffect, useRef, useState, type DragEvent } from "react";
 import { Rnd } from "react-rnd";
 import {
   boundRect,
@@ -25,34 +19,41 @@ import {
   widgetRegistry,
   type WidgetId,
 } from "./widget-registry";
-import {
-  layoutBottom,
-  newWidgetRect,
-  type LayoutAction,
-  type WorkspaceLayout,
-} from "./workspace-layout";
+import { layoutBottom, newWidgetRect, sameRect } from "./workspace-layout";
+
+import { useWorkspaceStore } from "./workspace-store";
+import { WorkspaceDialog } from "./workspace-dialog";
 
 type Point = Pick<Rect, "x" | "y">;
 type Menu = { id: WidgetId; point: Point };
 type Preview = { id: WidgetId; rect: Rect; input: Rect; guides: Guides };
 
 export function Canvas({
-  layout,
-  dispatch,
   desktop,
   draggedId,
+  presenting,
 }: {
-  layout: WorkspaceLayout;
-  dispatch: Dispatch<LayoutAction>;
   desktop: boolean;
   draggedId: WidgetId | null;
+  presenting: boolean;
 }) {
+  const layout = useWorkspaceStore((state) => state.layout);
+  const dispatch = useWorkspaceStore((state) => state.dispatch);
   const canvas = useRef<HTMLDivElement>(null);
   const previous = useRef(layout.mobileOrder);
   const [width, setWidth] = useState(0);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [dropPoint, setDropPoint] = useState<Point | null>(null);
   const [menu, setMenu] = useState<Menu | null>(null);
+  const [expanded, setExpanded] = useState<WidgetId | null>(null);
+
+  useEffect(
+    () =>
+      useWorkspaceStore.persist.onFinishHydration((state) => {
+        previous.current = state.layout.mobileOrder;
+      }),
+    [],
+  );
 
   useEffect(() => {
     const area = canvas.current;
@@ -76,7 +77,7 @@ export function Canvas({
     }
   }, [layout.mobileOrder]);
 
-  const interactive = desktop && width > 0;
+  const interactive = desktop && width > 0 && !presenting;
   const desktopOrder = Object.keys(layout.rects) as WidgetId[];
   const order = desktop ? desktopOrder : layout.mobileOrder;
   const rects = interactive
@@ -108,12 +109,14 @@ export function Canvas({
   }
 
   function update(id: WidgetId, rect: Rect, finished: boolean, edges?: Edges) {
-    const result = calculate(id, rect, edges);
+    const initial = rects[desktopOrder.indexOf(id)];
     if (finished) {
       setPreview(null);
+      if (!initial || sameRect(initial, rect)) return;
+      const result = calculate(id, rect, edges);
       dispatch({ type: "place", id, rect: toLayoutRect(result.rect, width) });
     } else {
-      setPreview({ id, input: rect, ...result });
+      setPreview({ id, input: rect, ...calculate(id, rect, edges) });
     }
   }
 
@@ -129,15 +132,23 @@ export function Canvas({
   function drop(event: DragEvent<HTMLDivElement>) {
     setDropPoint(null);
     const id = event.dataTransfer.getData(WIDGET_DRAG_TYPE);
-    if (!interactive || !isWidgetId(id)) return;
+    if (!interactive || !isWidgetId(id) || id !== draggedId) return;
     event.preventDefault();
-    if (layout.rects[id]) return;
-    const { rect } = positionDrop(id, pointerOnCanvas(event));
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const point = pointerOnCanvas(event);
+    if (
+      layout.rects[id] ||
+      point.x < 0 ||
+      point.x >= bounds.width ||
+      point.y < 0 ||
+      point.y >= bounds.height
+    )
+      return;
+    const { rect } = positionDrop(id, point);
     dispatch({ type: "add", id, rect: toLayoutRect(rect, width) });
   }
 
-  function closeMenu(id: WidgetId) {
-    setMenu(null);
+  function restoreFocus(id: WidgetId) {
     requestAnimationFrame(() => {
       const control =
         document.getElementById(`widget-options-${id}`) ??
@@ -145,6 +156,11 @@ export function Canvas({
         canvas.current;
       control?.focus({ preventScroll: true });
     });
+  }
+
+  function closeMenu(id: WidgetId) {
+    setMenu(null);
+    restoreFocus(id);
   }
 
   const menuIndex = menu
@@ -188,8 +204,12 @@ export function Canvas({
               id={id}
               number={i + 1}
               preview={interactive && preview?.id === id ? preview : null}
-              expanded={menu?.id === id}
-              onOpen={(point) => setMenu({ id, point })}
+              expanded={menu?.id === id || expanded === id}
+              presenting={presenting}
+              onOpen={(point) => {
+                if (presenting) setExpanded(id);
+                else setMenu({ id, point });
+              }}
             />
           );
 
@@ -292,6 +312,10 @@ export function Canvas({
           index={menuIndex}
           count={order.length}
           onClose={() => closeMenu(menu.id)}
+          onEnlarge={() => {
+            setMenu(null);
+            setExpanded(menu.id);
+          }}
           onLayer={(action) => dispatch({ type: "layer", id: menu.id, action })}
           onReorder={(step) => dispatch({ type: "reorder", id: menu.id, step })}
           onPlace={(rect) =>
@@ -310,6 +334,15 @@ export function Canvas({
           }}
         />
       )}
+      {expanded && layout.rects[expanded] && (
+        <WidgetFullscreen
+          id={expanded}
+          onClose={() => {
+            setExpanded(null);
+            restoreFocus(expanded);
+          }}
+        />
+      )}
     </main>
   );
 }
@@ -319,12 +352,14 @@ function WidgetFrame({
   number,
   preview,
   expanded,
+  presenting,
   onOpen,
 }: {
   id: WidgetId;
   number: number;
   preview: Preview | null;
   expanded: boolean;
+  presenting: boolean;
   onOpen: (point: Point) => void;
 }) {
   const { title, Content } = widgetRegistry[id];
@@ -350,6 +385,7 @@ function WidgetFrame({
       data-widget={id}
       aria-labelledby={`widget-title-${id}`}
       onContextMenu={(event) => {
+        if (presenting) return;
         event.preventDefault();
         if (event.clientX || event.clientY) {
           onOpen({ x: event.clientX, y: event.clientY });
@@ -369,18 +405,51 @@ function WidgetFrame({
           className="icon-button widget-options"
           id={`widget-options-${id}`}
           type="button"
-          aria-label={`Options : ${title}`}
+          aria-label={`${presenting ? "Agrandir" : "Options"} : ${title}`}
           aria-haspopup="dialog"
           aria-expanded={expanded}
           onClick={openAtButton}
         >
-          <MoreHorizontal size={17} />
+          {presenting ? <Maximize size={16} /> : <MoreHorizontal size={17} />}
         </button>
       </header>
       <div className="widget-content">
         <Content />
       </div>
     </section>
+  );
+}
+
+function WidgetFullscreen({
+  id,
+  onClose,
+}: {
+  id: WidgetId;
+  onClose: () => void;
+}) {
+  const { title, Content } = widgetRegistry[id];
+  return (
+    <WorkspaceDialog
+      className="widget-fullscreen"
+      titleId="widget-fullscreen-title"
+      onClose={onClose}
+    >
+      <header>
+        <h2 id="widget-fullscreen-title">{title}</h2>
+        <form method="dialog">
+          <button
+            className="icon-button"
+            type="submit"
+            aria-label="Quitter le plein écran du widget"
+          >
+            <X size={21} />
+          </button>
+        </form>
+      </header>
+      <div className="widget-content widget-fullscreen-content">
+        <Content />
+      </div>
+    </WorkspaceDialog>
   );
 }
 

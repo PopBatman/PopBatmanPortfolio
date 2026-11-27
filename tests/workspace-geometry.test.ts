@@ -7,7 +7,7 @@ import {
 } from "../app/workspace/geometry";
 import {
   initialLayout,
-  workspaceReducer,
+  applyLayoutAction,
 } from "../app/workspace/workspace-layout";
 
 const minimum = { width: 100, height: 80 };
@@ -87,23 +87,23 @@ describe("workspace geometry", () => {
 
 describe("shared widget state", () => {
   it("shares membership, blocks duplicates and keeps mobile order independent from depth", () => {
-    const added = workspaceReducer(initialLayout, { type: "add", id: "cv" });
-    expect(workspaceReducer(added, { type: "add", id: "cv" })).toBe(added);
-    const layered = workspaceReducer(added, {
+    const added = applyLayoutAction(initialLayout, { type: "add", id: "cv" });
+    expect(applyLayoutAction(added, { type: "add", id: "cv" })).toBe(added);
+    const layered = applyLayoutAction(added, {
       type: "layer",
       id: "cv",
       action: "back",
     });
     expect(layered.layers[0]).toBe("cv");
     expect(layered.mobileOrder.at(-1)).toBe("cv");
-    const moved = workspaceReducer(layered, {
+    const moved = applyLayoutAction(layered, {
       type: "reorder",
       id: "cv",
       step: -1,
     });
     expect(moved.layers).toBe(layered.layers);
     expect(moved.rects).toBe(layered.rects);
-    const removed = workspaceReducer(moved, { type: "remove", id: "cv" });
+    const removed = applyLayoutAction(moved, { type: "remove", id: "cv" });
     expect(removed.rects.cv).toBeUndefined();
     expect(removed.layers).not.toContain("cv");
     expect(removed.mobileOrder).not.toContain("cv");
