@@ -35,3 +35,27 @@ Statut : contrainte d'abonnement confirmée par le propriétaire le 26 novembre 
 - Test Codex Cloud communiqué par le propriétaire : branche temporaire work, /workspace/PopBatmanPortfolio, README seul, commit 32209f19bf94f421a567a192b16ee08ad4b60d1f (Initial commit). Correspondance SHA et README vérifiée via GitHub. Aucun commit ni PR créé par ce test.
 - Ruleset https://github.com/PopBatman/PopBatmanPortfolio/rules/28176368 vérifié actif et ciblant ~DEFAULT_BRANCH ; main protégée ; bypass vide ; règles deletion, pull_request (0 approbation, conversations résolues, squash uniquement), non_fast_forward.
 - Aucun test négatif de push direct ; aucune garantie technique de fusion réservée au propriétaire avec 0 approbation. Les checks requis seront configurés après la CI. Pas de développement agent en écriture avant le bootstrap et la validation de ces limites.
+
+## Décisions UX/UI — atelier et maquette approuvés (#10, #11)
+
+| ID | Décision | Statut |
+|---|---|---|
+| DEC-011 | Développeur polyvalent, recruteurs, style éditorial industriel, jaune #FFD600, deux thèmes, typographie industrielle, widgets uniformes | Validée visuellement par le propriétaire |
+| DEC-012 | Dashboard unique, sidebar bibliothèque rétractable et actions, modales, pas de navigation multi-dashboard | Validée |
+| DEC-013 | Drag/resize permanent, superposition libre, largeur bornée et scroll vertical, gestion du z-order et mobile vertical | Validée |
+| DEC-014 | Guides/aimantation, sauvegarde locale, reset, undo/redo, plein écran, recherche, FR/EN et mode présentation | Validée en atelier |
+| DEC-015 | React RND comme moteur drag/resize ; guides, aimantation et ajout depuis la sidebar complétés localement | Validée ; prototype requis |
+
+Le système de design est décrit dans [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md). La maquette approuvée n'est pas un prototype fonctionnel. Les valeurs techniques non explicitement fixées restent des propositions à vérifier.
+
+## Décisions techniques de l'atelier (27/11/2026)
+
+| ID | Décision | Statut |
+|---|---|---|
+| DEC-016 | Zustand + persist pour état client, historique et stockage local ; TanStack selon besoins réels | Validée |
+| DEC-017 | Widgets actifs communs, dispositions desktop et ordre mobile distincts, dimensions mobiles automatiques (option B) | Validée |
+| DEC-018 | react-i18next, FR/EN, changement instantané sans changement d'URL, préférence locale | Validée |
+| DEC-019 | Formspree pour le contact, TanStack Form + Zod ; aucun backend personnel | Validée ; endpoint et conformité à configurer |
+| DEC-020 | Lancement Codex Cloud manuel, push sur branche dédiée, PR assistée par ChatGPT, CI, fusion humaine | Parcours éprouvé #17/#20 ; intégration native bloquée #7 |
+
+Paramètres d'implémentation à affiner par prototype : seuils responsive, tailles minimales, algorithme des guides, limite d'historique (50 proposée), données réelles, disponibilité des fontes et planche graphique versionnée. Aucun compte Formspree n'a été créé et aucun endpoint n'a été fourni. La décision de publier, modifier la visibilité du dépôt ou activer une soumission réelle est distincte.
