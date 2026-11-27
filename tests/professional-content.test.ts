@@ -43,6 +43,8 @@ describe("professional content", () => {
   it("reports duplicate ids, dangling references and references to unpublished entities", () => {
     const draft: Entity<"technology"> = {
       kind: "technology",
+      category: "backend",
+      usage: "current",
       id: "technology:review-pending",
       status: "draft",
       related: [],

@@ -1,3 +1,12 @@
+import { technicalContent } from "./technical-content";
+import {
+  autonomyLevels,
+  technologyCategories,
+  technologyUsage,
+  type AutonomyLevel,
+  type TechnologyCategory,
+  type TechnologyUsage,
+} from "./technical-classification";
 import { careerContent } from "./career-content";
 
 export type Locale = "fr" | "en";
@@ -27,11 +36,10 @@ type EntityFields = {
     contract?: Localized<string>;
     technologies: readonly string[];
   };
-  technology: {
-    domain?: string;
-    usage?: "professional" | "personal" | "learning";
-  };
-  expertise: object;
+  technology: { category: TechnologyCategory; usage: TechnologyUsage };
+  expertise: { level: AutonomyLevel };
+  skill: { level: AutonomyLevel };
+  collection: { members: "technology" | "skill" };
   project: {
     stage?: "prototype" | "experiment" | "development" | "operational";
   };
@@ -76,19 +84,6 @@ export type ContentCatalog = { version: 1; entities: readonly Entity[] };
 
 export const PROFILE_ID = "profile:positionnement";
 export const AVAILABILITY_ID = "availability:opportunites";
-
-function expertise(
-  id: EntityId<"expertise">,
-  title: string,
-): Entity<"expertise"> {
-  return {
-    id,
-    kind: "expertise",
-    status: "approved",
-    copy: { fr: { status: "approved", title } },
-    related: [PROFILE_ID],
-  };
-}
 
 export const profile: Entity<"profile"> = {
   id: PROFILE_ID,
@@ -137,15 +132,7 @@ export const availability: Entity<"availability"> = {
 
 export const professionalContent: ContentCatalog = {
   version: 1,
-  entities: [
-    profile,
-    availability,
-    expertise("expertise:fullstack", "FullStack"),
-    expertise("expertise:architecture-logicielle", "Architecture logicielle"),
-    expertise("expertise:pilotage-technique", "Pilotage technique"),
-    expertise("expertise:ia-agentique", "IA agentique"),
-    ...careerContent,
-  ],
+  entities: [profile, availability, ...technicalContent, ...careerContent],
 };
 
 export function approvedCopy(entity: Entity, locale: Locale) {
@@ -201,6 +188,19 @@ export function validateContent(catalog: ContentCatalog): string[] {
       errors.push(`Identifiant dupliqué : ${entity.id}`);
     index.set(entity.id, entity);
 
+    if (
+      entity.kind === "technology" &&
+      (!Object.hasOwn(technologyCategories, entity.category) ||
+        !Object.hasOwn(technologyUsage, entity.usage))
+    ) {
+      errors.push(`Classification technologique invalide : ${entity.id}`);
+    }
+    if (
+      (entity.kind === "expertise" || entity.kind === "skill") &&
+      !Object.hasOwn(autonomyLevels, entity.level)
+    ) {
+      errors.push(`Autonomie invalide : ${entity.id}`);
+    }
     if (entity.status === "approved" && !approvedCopy(entity, "fr")) {
       errors.push(`Version française non approuvée : ${entity.id}`);
     }

@@ -11,9 +11,19 @@ import {
 import {
   formatYears,
   getPublishedDetail,
+  publishedEntries,
+  type Entity,
   relatedDetails,
   type EntityId,
 } from "../content/professional-content";
+import {
+  autonomyLevels,
+  technologyCategories,
+  technologyUsage,
+  type AutonomyLevel,
+  type TechnologyCategory,
+  type TechnologyUsage,
+} from "../content/technical-classification";
 import { WorkspaceDialog } from "./workspace-dialog";
 
 const openDetails = createContext<
@@ -193,6 +203,26 @@ function ProfessionalDialog({
           </ul>
         </section>
       )}
+      {entity.kind === "technology" && (
+        <dl className="professional-terms">
+          <dt>Catégorie</dt>
+          <dd>{technologyCategories[entity.category]}</dd>
+          <dt>Statut d’usage</dt>
+          <dd>{technologyUsage[entity.usage]}</dd>
+        </dl>
+      )}
+      {(entity.kind === "expertise" || entity.kind === "skill") && (
+        <dl className="professional-terms">
+          <dt>Niveau d’autonomie</dt>
+          <dd>{autonomyLevels[entity.level]}</dd>
+        </dl>
+      )}
+      {entity.kind === "collection" && (
+        <DetailCollection
+          members={entity.members}
+          onNavigate={(id) => setPath((previous) => [...previous, id])}
+        />
+      )}
       {related.length > 0 && (
         <nav aria-label="Fiches liées">
           <h3>Fiches liées</h3>
@@ -215,5 +245,85 @@ function ProfessionalDialog({
         </nav>
       )}
     </WorkspaceDialog>
+  );
+}
+
+function DetailCollection({
+  members,
+  onNavigate,
+}: {
+  members: Entity<"collection">["members"];
+  onNavigate: (id: EntityId) => void;
+}) {
+  const skills = members === "skill" ? publishedEntries("skill", "fr") : [];
+  const technologies =
+    members === "technology" ? publishedEntries("technology", "fr") : [];
+  const levels = Object.keys(autonomyLevels) as AutonomyLevel[];
+  const usages = Object.keys(technologyUsage) as TechnologyUsage[];
+  const categories = Object.keys(technologyCategories) as TechnologyCategory[];
+
+  return (
+    <nav
+      aria-label={
+        members === "skill"
+          ? "Compétences par autonomie"
+          : "Technologies par usage et catégorie"
+      }
+    >
+      {members === "skill"
+        ? levels.map((level) => (
+            <section className="professional-section" key={level}>
+              <h3>{autonomyLevels[level]}</h3>
+              <DetailLinks
+                entries={skills.filter(({ entity }) => entity.level === level)}
+                onNavigate={onNavigate}
+              />
+            </section>
+          ))
+        : usages.map((usage) => (
+            <section className="professional-section" key={usage}>
+              <h3>{technologyUsage[usage]}</h3>
+              {categories.map((category) => {
+                const group = technologies.filter(
+                  ({ entity }) =>
+                    entity.category === category && entity.usage === usage,
+                );
+                return (
+                  group.length > 0 && (
+                    <div key={category}>
+                      <h4>{technologyCategories[category]}</h4>
+                      <DetailLinks entries={group} onNavigate={onNavigate} />
+                    </div>
+                  )
+                );
+              })}
+            </section>
+          ))}
+    </nav>
+  );
+}
+
+function DetailLinks({
+  entries,
+  onNavigate,
+}: {
+  entries: readonly { entity: Entity; copy: { title: string } }[];
+  onNavigate: (id: EntityId) => void;
+}) {
+  return (
+    <ul className="stack">
+      {entries.map(({ entity, copy }) => (
+        <li key={entity.id}>
+          <button
+            className="detail-link"
+            type="button"
+            onClick={() => onNavigate(entity.id)}
+          >
+            {copy.title}
+            <ChevronRight size={14} aria-hidden="true" />
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }

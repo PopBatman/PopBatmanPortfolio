@@ -1,13 +1,10 @@
 import {
-  AudioLines,
   BarChart3,
   Circle,
-  CodeXml,
   GitFork,
   Layers3,
   Mail,
   Network,
-  Terminal,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -16,23 +13,20 @@ import {
   availability,
   approvedCopy,
   formatYears,
+  getPublishedDetail,
   publishedEntries,
   profile,
   relatedDetails,
 } from "../content/professional-content";
+import {
+  featuredTechnologyIds,
+  SKILLS_ID,
+  STACK_ID,
+} from "../content/technical-content";
+import { autonomyLevels } from "../content/technical-classification";
 import { DetailsButton } from "./professional-details";
 import type { ComponentType } from "react";
 import type { Size } from "./geometry";
-
-const stack: { name: string; icon: LucideIcon; color: string }[] = [
-  { name: "TypeScript", icon: CodeXml, color: "blue" },
-  { name: "React", icon: AudioLines, color: "cyan" },
-  { name: "Next.js", icon: Terminal, color: "neutral" },
-  { name: "Tailwind CSS", icon: AudioLines, color: "cyan" },
-  { name: "Playwright", icon: CodeXml, color: "green" },
-  { name: "npm", icon: Terminal, color: "yellow" },
-  { name: "GitHub", icon: GitFork, color: "neutral" },
-];
 
 function Presentation() {
   const copy = approvedCopy(profile, "fr");
@@ -164,14 +158,39 @@ function Interests() {
 
 function Stack() {
   return (
-    <ul className="stack">
-      {stack.map(({ name, icon: Icon, color }) => (
-        <li key={name}>
-          <Icon size={18} data-color={color} aria-hidden="true" />
-          {name}
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul className="stack" aria-label="Technologies à la une">
+        {featuredTechnologyIds.map((id) => {
+          const detail = getPublishedDetail(id, "fr");
+          return (
+            detail && (
+              <li key={id}>
+                <DetailsButton id={id}>{detail.copy.title}</DetailsButton>
+              </li>
+            )
+          );
+        })}
+      </ul>
+      <DetailsButton id={STACK_ID}>Toutes les technologies</DetailsButton>
+    </>
+  );
+}
+
+function Expertise() {
+  return (
+    <>
+      <ul className="timeline" aria-label="Expertises professionnelles">
+        {publishedEntries("expertise", "fr").map(({ entity, copy }) => (
+          <li key={entity.id}>
+            <strong>
+              <DetailsButton id={entity.id}>{copy.title}</DetailsButton>
+            </strong>
+            <p>{autonomyLevels[entity.level]}</p>
+          </li>
+        ))}
+      </ul>
+      <DetailsButton id={SKILLS_ID}>Compétences transversales</DetailsButton>
+    </>
   );
 }
 
@@ -270,7 +289,7 @@ export const widgetRegistry = {
   lestudio: widget("LeStudio", "projects", 180, 110, LeStudio),
   cv: widget("CV", "identity", 176, 105),
   formations: widget("Formations", "career", 180, 105, Education),
-  expertises: widget("Expertises", "engineering", 180, 105),
+  expertises: widget("Expertises", "engineering", 180, 105, Expertise),
   architecture: widget("Architecture", "engineering", 180, 105),
   portfolio: widget("Portfolio", "projects", 180, 105),
   activite: widget("Activité GitHub", "activity", 190, 105),
