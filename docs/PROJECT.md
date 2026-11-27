@@ -8,7 +8,7 @@
 Un dashboard unique personnalisable (Personal Workspace), sidebar bibliothèque de widgets et actions, modales de profil/contact/détails, thèmes clair et sombre, français/anglais. Widgets uniformes, déplacement et resize libres avec superposition sur desktop ; disposition verticale adaptée sur mobile. Contenus : parcours, expertises, formations, réalisations (Botty, LeStudio et workflow agentique), CV et contact. Site statique, responsive, accessible ; contenu vérifiable et publiable. Distinguer les expérimentations des produits opérationnels. Voir [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md).
 
 ## Hors périmètre
-Backend, base de données, comptes, vente en ligne, backend de formulaire, orchestrateur externe, automatisation intégrale non prouvée. Laboratoire IA et domaine personnalisé facultatifs.
+Backend personnel, base de données, comptes, vente en ligne, backend de formulaire personnel (Formspree approuvé comme service externe), orchestrateur externe, automatisation intégrale non prouvée. Laboratoire IA et domaine personnalisé facultatifs.
 
 ## Pilotage
 GitHub Issues porte les contrats ; Projects fournit la vue de suivi. Aucun backlog concurrent. Le propriétaire valide architecture, design, contenus, fusion et publication. Mesurer les gestes manuels réels du pilote, pas des gains supposés.

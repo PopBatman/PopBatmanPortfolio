@@ -70,7 +70,7 @@ Pas de duplication ni de raccourcis clavier avancés en V1 selon l'arbitrage pr�
 
 ## Modales
 
-Profil (photo réelle fournie, bio, liens, CV), contact (nom, e-mail, message, validation), détails projet/expérience/compétence, préférences. Gérer focus initial, piège de focus, fermeture Escape, retour du focus, libellés et erreurs accessibles. Aucun faux succès d'envoi : mécanisme de contact à décider pour un site statique ; ne pas installer de backend ni de prestataire sans accord.
+Profil (photo réelle fournie, bio, liens, CV), contact (nom, e-mail, message, validation), détails projet/expérience/compétence, préférences. Gérer focus initial, piège de focus, fermeture Escape, retour du focus, libellés et erreurs accessibles. Aucun faux succès d'envoi : Formspree validé avec TanStack Form/Zod. Champs : nom/prénom, entreprise facultative, e-mail, objet, message. Activation après configuration du formulaire et de la confidentialité par le propriétaire ; repli sur liens de contact vérifiés si non configuré.
 
 ## Critères visuels et UX
 
@@ -81,10 +81,11 @@ Profil (photo réelle fournie, bio, liens, CV), contact (nom, e-mail, message, v
 5. Les contrôles essentiels sont accessibles sans glisser-déposer ; respecter focus, contraste, reduced motion et navigation clavier. Prévoir une action d'ajout au clic et un moyen accessible de déplacer/redimensionner.
 6. Libellés FR/EN et contenus vérifiés. Aucune donnée fictive tirée de la maquette.
 
-## Arbitrages techniques encore ouverts
+## Décisions techniques et vérifications restantes
 
-- Choix moteur drag/resize et modèle de coordonnées/z-index ; prototype ciblé avant dépendance définitive.
-- Formats et tailles minimum, stratégie de réduction de largeur et persistance séparée desktop/mobile.
-- Solution d'envoi du formulaire, sans compromettre l'architecture statique.
-- Politique de mode présentation, historique et stockage local détaillé ; fontes locales/licences, données personnelles et visuels réels.
-- Enregistrer la planche approuvée dans le dépôt après mise à disposition du fichier. Aucun nouveau choix de stack ou de service n'est autorisé par cette validation graphique.
+React RND, Zustand/persist, disposition desktop + ordre mobile, react-i18next et Formspree sont validés. Voir [ARCHITECTURE.md](ARCHITECTURE.md) pour le modèle, la persistance et le flux de contact.
+
+- Prototyper les guides d'alignement, l'aimantation et le resize ; vérifier les tailles minimales, le recalcul de largeur, les états mobile et l'historique.
+- Préciser le mode présentation, les textes et les visuels réels ; vérifier les fontes et leurs licences.
+- Configurer le formulaire Formspree et la confidentialité avant activation ; aucun envoi réel en test automatisé.
+- Enregistrer la planche approuvée dans le dépôt après mise à disposition du fichier. Les détails de la maquette restent une référence et non des données professionnelles vérifiées.
