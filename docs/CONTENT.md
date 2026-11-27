@@ -48,13 +48,13 @@ FullStack, architecture logicielle, IA agentique, industrialisation, data engine
 
 React Flow approuvé pour des diagrammes interactifs, dans les fiches du portfolio ; ne remplace pas React RND. Nœuds cliquables (rôle, connexions), contexte, contraintes, alternatives, décisions, justifications, limites. Données statiques et typées, équivalent textuel accessible, intégration sans conflit de gestes avec le workspace. Vérifier la compatibilité avec export statique.
 
-Architectures envisagées : Botty (FullStack, API, mobile, PostgreSQL), LeStudio (CMS, isolation des sites, workflow agentique), Portfolio (workflow ChatGPT/Codex/GitHub/CI, application statique interactive), pipeline de données professionnel uniquement sous forme anonymisée et validée. Les schémas seront confrontés à l'état réel de chaque projet.
+Le schéma de travail de Botty représente les flux de données entre collecte, traitement Python, PostgreSQL, API Flask et application React Native / Expo. Les composants et connexions conceptuelles restent soumis à validation du propriétaire. Docker est envisagé dans ce schéma et la mise en place de la CI/CD est confirmée. Les représentations de la maquette initiale illustrent le système de design.
 
 ## 7. Projets
 
-Études de cas de Botty, LeStudio, Workflow agentique et Portfolio. Même structure : présentation, problématique, objectifs, rôle, captures autorisées, architecture, stack, décisions et alternatives, difficultés et solutions, résultats livrés, limites, roadmap, démonstration et code source si réellement publics.
+Botty est l’unique étude de cas de projet personnel du Portfolio V1. LeStudio, Workflow agentique et Portfolio sont reportés comme études de cas. L’IA agentique reste une expertise professionnelle.
 
-Transparence sur le travail manuel, l'assistance IA, les choix et la validation humaine, les agents utilisés et leurs responsabilités. Statut explicite : prototype, expérimentation, en développement, opérationnel, selon preuves. Aucun gain chiffré sans mesure, ni lien fictif, ni accès privé présenté comme public. Le Portfolio lui-même est une étude de cas du workflow éprouvé avec lancement manuel et PR assistée ; pas d'affirmation d'autonomie complète.
+Créé en 2025 et développé en solo, Botty visait à générer des signaux d’achat et de vente de qualité. Une année de développement sans IA a précédé six mois avec IA. La réalisation principale est la mise en production du produit complet, avec CI/CD et configuration du serveur. Le produit était opérationnel et accessible au public au moment de l’atelier éditorial et son arrêt est prévu. Le développement agentique sans méthode structurée a été la principale difficulté. La commercialisation a été abandonnée, la valeur ajoutée ayant été jugée insuffisante. Tout lien de démonstration reste soumis à vérification et approbation.
 
 ## 8. Activité GitHub et Changelog
 

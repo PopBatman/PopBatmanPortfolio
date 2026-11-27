@@ -41,16 +41,16 @@ test("restores desktop geometry, depth, membership, mobile order and preferences
     "data-free",
     "true",
   );
-  const dialog = await openOptions(page, "Botty");
+  const dialog = await openOptions(page, "Stack technique");
   await dialog.getByRole("button", { name: "Premier plan" }).click();
   await dialog.getByLabel("Horizontal").fill("153");
   await dialog.getByLabel("Vertical").fill("615");
   await dialog.getByLabel("Largeur").fill("312");
   await dialog.getByLabel("Hauteur").fill("150");
   await dialog.getByRole("button", { name: "Appliquer" }).click();
-  const botty = widget(page, "botty");
-  await expect(botty).toHaveCSS("width", "312px");
-  const box = await botty.boundingBox();
+  const stack = widget(page, "stack");
+  await expect(stack).toHaveCSS("width", "312px");
+  const box = await stack.boundingBox();
   await libraryAdd(page, "Architecture");
   await page.getByRole("button", { name: "Changer le thème" }).click();
   await page.getByRole("button", { name: "Réduire la barre latérale" }).click();
@@ -61,11 +61,11 @@ test("restores desktop geometry, depth, membership, mobile order and preferences
   await page.keyboard.press("Escape");
   await expect(
     widget(page, "architecture").locator(".widget-number"),
-  ).toHaveText("08 /");
+  ).toHaveText("06 /");
   await page.reload();
   await expect(
     widget(page, "architecture").locator(".widget-number"),
-  ).toHaveText("08 /");
+  ).toHaveText("06 /");
   await expect(workspace(page)).toHaveAttribute("data-theme", "light");
   await expect(workspace(page)).toHaveAttribute("data-collapsed", "true");
 
@@ -73,10 +73,10 @@ test("restores desktop geometry, depth, membership, mobile order and preferences
   await page
     .getByRole("button", { name: "Déployer la barre latérale" })
     .click();
-  await expect(botty).toHaveCSS("width", "312px");
-  await expect(botty.locator("..")).toHaveCSS("z-index", "8");
+  await expect(stack).toHaveCSS("width", "312px");
+  await expect(stack.locator("..")).toHaveCSS("z-index", "6");
   await page.evaluate(() => scrollTo(0, 0));
-  expect(await botty.boundingBox()).toEqual(box);
+  expect(await stack.boundingBox()).toEqual(box);
   await expect(undo(page)).toBeDisabled();
   await expect(redo(page)).toBeDisabled();
   expect(errors).toEqual([]);
@@ -98,7 +98,7 @@ test("falls back on malformed JSON and invalid persisted layout without writing 
       { key, invalid },
     );
     await page.reload();
-    await expect(page.locator("main .widget")).toHaveCount(8);
+    await expect(page.locator("main .widget")).toHaveCount(6);
     await expect(workspace(page)).toHaveAttribute("data-theme", "dark");
     expect(await page.evaluate((key) => localStorage.getItem(key), key)).toBe(
       invalid,

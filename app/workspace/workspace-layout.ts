@@ -24,8 +24,6 @@ const initialRects = {
   experiences: { x: 0, y: 340, width: 560, height: 208 },
   stack: { x: 578, y: 340, width: 560, height: 208 },
   botty: { x: 0, y: 566, width: 367, height: 143 },
-  workflow: { x: 385, y: 566, width: 367, height: 143 },
-  lestudio: { x: 770, y: 566, width: 368, height: 143 },
 } satisfies Layout;
 
 const initialOrder = Object.keys(initialRects) as WidgetId[];
