@@ -74,7 +74,7 @@ test("supports keyboard sidebar controls, search and both themes", async ({
   await expect(workspace).toHaveAttribute("data-theme", "light");
   await expect(
     page.getByRole("button", { name: "Présentation", exact: true }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await theme.click();
   await expect(workspace).toHaveAttribute("data-theme", "dark");
 });

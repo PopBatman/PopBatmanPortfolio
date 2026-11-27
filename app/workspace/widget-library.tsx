@@ -21,6 +21,8 @@ import {
   type WidgetId,
 } from "./widget-registry";
 
+import { useWorkspaceStore } from "./workspace-store";
+
 const categories = [
   { id: "identity", name: "Identité", icon: UserRound },
   { id: "career", name: "Carrière", icon: BriefcaseBusiness },
@@ -32,16 +34,15 @@ const categories = [
 ];
 
 export function WidgetLibrary({
-  active,
   desktop,
   onAdd,
   onDragWidget,
 }: {
-  active: WidgetId[];
   desktop: boolean;
   onAdd: (id: WidgetId) => void;
   onDragWidget: (id: WidgetId | null) => void;
 }) {
+  const active = useWorkspaceStore((state) => state.layout.mobileOrder);
   const [query, setQuery] = useState("");
   const search = query.trim().toLowerCase();
   const results = categories
