@@ -120,6 +120,9 @@ test("ignores stale close events when opening another detail", async ({
     .locator('[data-widget="disponibilite"]')
     .getByRole("button", { name: "Détails" });
   await next.evaluate((button) => {
+    if (!(button instanceof HTMLButtonElement)) {
+      throw new Error("Expected a detail button");
+    }
     document
       .querySelector<HTMLDialogElement>("dialog.professional-dialog")
       ?.close();
