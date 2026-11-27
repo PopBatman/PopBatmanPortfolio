@@ -21,7 +21,7 @@ test("serves the static dashboard and its local fonts", async ({
   await expect(page.locator("html")).toHaveAttribute("lang", "fr");
   const heading = page.getByRole("heading", {
     level: 1,
-    name: "PopBatman Portfolio",
+    name: "Développeur polyvalent",
   });
   await expect(heading).toBeVisible();
   await expect(heading).toHaveCSS("font-weight", "700");

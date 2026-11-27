@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Canvas } from "./canvas";
+import { ProfessionalDetails } from "./professional-details";
 import { useWorkspaceStore } from "./workspace-store";
 import { WorkspaceDialog } from "./workspace-dialog";
 import type { WidgetId } from "./widget-registry";
@@ -349,11 +350,13 @@ export function WorkspaceShell() {
           onFullscreen={() => void toggleFullscreen()}
           onPresentation={togglePresentation}
         />
-        <Canvas
-          desktop={desktop}
-          draggedId={draggedId}
-          presenting={presenting}
-        />
+        <ProfessionalDetails>
+          <Canvas
+            desktop={desktop}
+            draggedId={draggedId}
+            presenting={presenting}
+          />
+        </ProfessionalDetails>
       </div>
       <div className="mobile-actions" aria-label="Actions mobiles">
         <button

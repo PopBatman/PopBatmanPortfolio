@@ -10,6 +10,15 @@ import {
   Terminal,
   type LucideIcon,
 } from "lucide-react";
+import {
+  AVAILABILITY_ID,
+  PROFILE_ID,
+  availability,
+  approvedCopy,
+  profile,
+  relatedDetails,
+} from "../content/professional-content";
+import { DetailsButton } from "./professional-details";
 import type { ComponentType } from "react";
 import type { Size } from "./geometry";
 
@@ -24,33 +33,51 @@ const stack: { name: string; icon: LucideIcon; color: string }[] = [
 ];
 
 function Presentation() {
+  const copy = approvedCopy(profile, "fr");
+  if (!copy) return null;
+  const disciplines = relatedDetails(profile, "fr")
+    .filter(({ entity }) => entity.kind === "expertise")
+    .map(({ copy }) => copy.title);
   return (
     <div className="profile">
       <div className="profile-initials" aria-hidden="true">
-        <span>PW</span>
+        <span>{profile.initials}</span>
       </div>
       <div className="profile-copy">
         <h1>
-          PopBatman
-          <br />
-          Portfolio <span aria-hidden="true">/</span>
+          {copy.title} <span aria-hidden="true">/</span>
         </h1>
-        <p className="profile-role">Développeur polyvalent</p>
-        <p className="profile-description">
-          Développement FullStack, architecture et IA agentique.
-        </p>
+        <p className="profile-description">{disciplines.join(" · ")}</p>
+        <DetailsButton id={PROFILE_ID}>Consulter le profil</DetailsButton>
       </div>
     </div>
   );
 }
 
 function Availability() {
+  const copy = approvedCopy(availability, "fr");
+  if (!copy) return null;
+  const { contracts, regions, modes, targets } = availability.terms.fr;
   return (
     <>
-      <p className="availability">
-        <Circle size={9} fill="currentColor" aria-hidden="true" /> À confirmer
+      <div className="availability-heading">
+        <p className="availability">
+          <Circle size={9} fill="currentColor" aria-hidden="true" />
+          {copy.title}
+        </p>
+        <DetailsButton id={AVAILABILITY_ID}>Détails</DetailsButton>
+      </div>
+      <ul
+        className="availability-badges"
+        aria-label="Contrats, périmètre et modalités"
+      >
+        {[...contracts, ...regions, ...modes].map((label) => (
+          <li key={label}>{label}</li>
+        ))}
+      </ul>
+      <p className="widget-muted">
+        <strong>Postes ciblés</strong> · {targets.join(" · ")}
       </p>
-      <p className="widget-muted">Modalités à préciser</p>
     </>
   );
 }
