@@ -10,6 +10,10 @@ export const metadata: Metadata = {
   title: "PopBatman Portfolio",
   description:
     "Portfolio de développement FullStack, architecture et IA agentique.",
+  robots:
+    process.env.PORTFOLIO_PREVIEW_ENABLED === "true"
+      ? { index: false, follow: false }
+      : undefined,
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

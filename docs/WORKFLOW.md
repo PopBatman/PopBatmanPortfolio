@@ -23,5 +23,20 @@ Ready n'est pas un déclencheur. Le lancement depuis Codex Cloud est le socle. L
 ## Pilote
 Le résultat doit relier l'Issue, le lancement, le diff, les tests, le commit, la PR et la CI. Mesurer les gestes manuels et les quotas ; main reste intacte jusqu'à la fusion humaine. En cas de blocage, documenter et arrêter ; pas de retry automatique.
 
+## Aperçu GitHub Pages pour la revue UX/UI
+
+Le workflow `Pages preview` est prévu pour les pushes sur `main` et les lancements manuels depuis `main`. La CI de pull request conserve son contrôle obligatoire `Validation`. Une fois l’aperçu autorisé, le workflow Pages exécute les vérifications npm et Playwright avant de transférer le seul dossier `out/`, construit pour `/PopBatmanPortfolio/`. Les exécutions de publication sont sérialisées. GitHub Actions peut remplacer une exécution en attente par une plus récente.
+
+### Activation et autorisation
+
+1. Le propriétaire vérifie l’éligibilité du dépôt privé à GitHub Pages et l’audience réelle du site. Un dépôt privé peut produire un site public. Le propriétaire examine l’export et approuve explicitement la visibilité et le contenu de l’aperçu avant toute publication. La balise `noindex, nofollow` donne une consigne aux moteurs de recherche. L’accès au site dépend des paramètres GitHub Pages.
+2. Après accord, le propriétaire sélectionne **Settings → Pages → Build and deployment → Source → GitHub Actions**, en conservant la visibilité privée du dépôt. Dans **Settings → Environments → github-pages**, il limite la branche de déploiement à `main` et configure la revue humaine si son plan propose cette protection.
+3. Pour autoriser les déploiements, le propriétaire crée la variable de dépôt `PORTFOLIO_PREVIEW_ENABLED` avec la valeur `true` sous **Settings → Secrets and variables → Actions → Variables**. Tant que cette variable est absente ou désactivée, le build Pages et le job de déploiement sont ignorés. Après activation, un push sur `main` ou **Actions → Pages preview → Run workflow → main** lance la validation et la publication, sous réserve des protections de l’environnement.
+
+### Retour arrière et retrait
+
+- **Retour arrière** — Relever le dernier commit validé dans l’historique des déploiements. Préparer une PR qui annule les changements concernés, faire passer `Validation` et fusionner sur `main` après revue. Le workflow republie cette version depuis `main`.
+- **Retrait** — Désactiver la variable (`false` ou suppression), puis annuler les exécutions Pages actives ou en attente. Sous **Settings → Pages**, ouvrir le menu du site et sélectionner **Unpublish site** pour retirer le site déjà publié. [Documentation GitHub sur le retrait](https://docs.github.com/en/pages/getting-started-with-github-pages/unpublishing-a-github-pages-site)
+
 ## Références
 Architecture et décisions : [ARCHITECTURE.md](ARCHITECTURE.md), [DECISIONS.md](DECISIONS.md). Le backlog GitHub reste la référence pour les dépendances et l'avancement.

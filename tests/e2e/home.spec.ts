@@ -18,6 +18,12 @@ test("serves the static dashboard and its local fonts", async ({
 
   expect((await page.goto("./"))?.status()).toBe(200);
   await expect(page).toHaveTitle("PopBatman Portfolio");
+  const robots = page.locator('meta[name="robots"]');
+  if (process.env.PORTFOLIO_PREVIEW_ENABLED === "true") {
+    await expect(robots).toHaveAttribute("content", "noindex, nofollow");
+  } else {
+    await expect(robots).toHaveCount(0);
+  }
   await expect(page.locator("html")).toHaveAttribute("lang", "fr");
   const heading = page.getByRole("heading", {
     level: 1,
