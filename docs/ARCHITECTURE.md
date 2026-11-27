@@ -5,7 +5,7 @@ Ce document cadre la solution ; il n'autorise aucun agent, déploiement ou chang
 
 ## 1. Produit
 
-Objectif : portfolio professionnel public, présentant les expertises FullStack, architecture et IA agentique, avec études de cas vérifiables (Botty, LeStudio, workflow agentique). Contact via Malt, LinkedIn, e-mail et formulaire Formspree. Pas de vente en ligne, de comptes, de données métier ni d'API applicative personnelle en V1.
+Objectif : portfolio professionnel public, présentant les expertises FullStack, architecture et IA agentique, avec études de cas vérifiables (Botty, LeStudio, workflow agentique). Contact via Malt, LinkedIn, GitHub, e-mail et formulaire Formspree. Pas de vente en ligne, de comptes, de données métier ni d'API applicative personnelle en V1.
 
 ```text
 Contenus versionnés + composants React
@@ -77,9 +77,24 @@ Le registre de widgets sépare le contenu du moteur de disposition : type, ident
 
 Internationalisation : dictionnaires locaux par domaine, français comme fallback ; préférence explicite sauvegardée prioritaire sur langue du navigateur. Changement instantané sans navigation, ni perte de layout. Rendu statique initial FR, document lang mis à jour côté client. Une seule URL en V1 : référencement indépendant EN limité. Prévoir des textes réels relus, pas de traduction automatique à l'exécution.
 
-Contact : modale accessible, nom/prénom, entreprise facultative, e-mail, objet, message. Validation TanStack Form/Zod ; état d'envoi, erreur et succès distincts. Formspree reçoit uniquement les champs du formulaire après action volontaire ; indiquer le destinataire/traitement, lien de confidentialité, antispam compatible. Aucun secret privé dans le navigateur, aucun compte ni endpoint créé par l'agent. L'endpoint Formspree est un identifiant public de formulaire fourni par le propriétaire (configuration de build ou fichier de configuration public), pas une clé secrète. Sans endpoint valide, désactiver l'envoi et proposer des liens de contact vérifiés ; jamais de faux succès. Tests automatisés avec requête simulée, aucune soumission réelle sans autorisation. Vérifier la rétention, les conditions, le quota et la conformité de Formspree avant la mise en ligne.
+Contact : modale accessible, nom/prénom, entreprise facultative, e-mail, nature de la prise de contact, objet, message. Validation TanStack Form/Zod ; état d'envoi, erreur et succès distincts. Formspree reçoit uniquement les champs du formulaire après action volontaire ; indiquer le destinataire/traitement, lien de confidentialité, antispam compatible. Aucun secret privé dans le navigateur, aucun compte ni endpoint créé par l'agent. L'endpoint Formspree est un identifiant public de formulaire fourni par le propriétaire (configuration de build ou fichier de configuration public), pas une clé secrète. Sans endpoint valide, désactiver l'envoi et proposer des liens de contact vérifiés ; jamais de faux succès. Tests automatisés avec requête simulée, aucune soumission réelle sans autorisation. Vérifier la rétention, les conditions, le quota et la conformité de Formspree avant la mise en ligne.
 
-Police locale et assets optimisés pour éviter les dépendances réseau au runtime ; vérifier licences et disponibilités lors du bootstrap. Aucun token GitHub côté client. L'activité GitHub peut rester un snapshot statique ; TanStack Query n'est pas obligatoire en V1. L'horloge locale est affichée côté client.
+Police locale et assets optimisés pour éviter les dépendances réseau au runtime ; vérifier licences et disponibilités lors du bootstrap. Aucun token GitHub côté client. L'activité GitHub repose sur un snapshot statique de données publiques actualisé au build ; TanStack Query n'est pas obligatoire en V1. L'horloge locale est affichée côté client.
+
+### Contenus et architectures interactives — atelier éditorial
+
+Voir [CONTENT.md](CONTENT.md). Le contenu statique typé et versionné est partagé par les widgets et fiches (références stables, bilinguisme préparé, validation humaine des faits et assets). React Flow est approuvé pour les diagrammes des architectures et études de cas, sans remplacer React RND ; installable seulement dans #35 après vérification de compatibilité. Prévoir une représentation textuelle accessible et isoler les gestes du diagramme du canvas. CV : trois variantes FR/EN, PDFs approuvés et manifestes de fichiers ; génération automatique au build non arbitrée.
+
+Activité GitHub : collecte quotidienne des seules données publiques lors d'un build statique déclenché par GitHub Actions. Pas de jeton client, pas d'accès à des données privées ni de push automatique sur main ; fixtures de CI, snapshot daté de repli ou état indisponible. Le workflow planifié de reconstruction/publication ne peut être activé qu'après validation de #14 et autorisation explicite. Cette extension reste du build/déploiement et ne déclenche pas d'agent. Le Changelog demeure versionné.
+
+### Persistance livrée (DEV-005, #39)
+
+- Zustand 5.1.0, store typé avec sélecteurs ciblés. `workspace-store.ts` porte la disposition, les préférences et l'historique ; `workspace-layout.ts` conserve les opérations pures ; `workspace-persistence.ts` valide les données au chargement.
+- Clé localStorage `popbatman-workspace`, version 1 : `layout.rects`, `layout.layers`, `layout.mobileOrder` et `preferences` (theme, sidebarCollapsed, language). La géométrie horizontale de référence utilise 1138 px, sans réécriture lors d'un changement de largeur. La borne verticale stockable est de 1 000 000 px.
+- Hydratation manuelle après montage (`skipHydration: true`). JSON invalide, version inconnue, identifiants non reconnus, coordonnées non finies, ordres incohérents ou préférences invalides : repli initial. Un layout volontairement vide est accepté. Les erreurs de lecture/écriture sont absorbées pour conserver une session utilisable ; aucune garantie de conservation après reload si le stockage est bloqué ou saturé. Pas de migration d'ancienne version implémentée à ce stade. Pas de synchronisation entre appareils.
+- Historique de 50 transactions en mémoire, actions sans effet ignorées ; toute nouvelle modification après undo invalide redo. Undo/redo, ajout/suppression, position, dimensions, couches et ordre mobile. Reset confirmé et annulable, sans modifier les préférences. Les previews de drag/resize et modes temporaires ne sont pas persistés.
+- Présentation en lecture seule et plein écran temporaire (natif ou repli CSS) ; ils ne changent pas le layout sauvegardé. Langue typée FR/EN mais bascule effective réservée à #26.
+- CI indépendante #39 (run 46026620283) réussie, fusion par le propriétaire sur main `48d282b`. Les captures supplémentaires DEV-005 et un rapport de tests manuels ne sont pas disponibles ; ne pas présenter cette preuve CI comme une validation manuelle détaillée. Le parcours de réajout via bibliothèque d'un widget initial supprimé reste à vérifier dans la QA globale.
 
 ### Contraintes de publication
 

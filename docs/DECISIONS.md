@@ -59,3 +59,19 @@ Le système de design est décrit dans [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md). La 
 | DEC-020 | Lancement Codex Cloud manuel, push sur branche dédiée, PR assistée par ChatGPT, CI, fusion humaine | Parcours éprouvé #17/#20 ; intégration native bloquée #7 |
 
 Paramètres d'implémentation à affiner par prototype : seuils responsive, tailles minimales, algorithme des guides, limite d'historique (50 proposée), données réelles, disponibilité des fontes et planche graphique versionnée. Aucun compte Formspree n'a été créé et aucun endpoint n'a été fourni. La décision de publier, modifier la visibilité du dépôt ou activer une soumission réelle est distincte.
+
+## Décisions éditoriales — douze ateliers approuvés (27/11/2026)
+
+| ID | Décision | Statut |
+|---|---|---|
+| DEC-021 | Positionnement hybride, disponibilité CDI/freelance France/international, timeline détaillée, stack contextualisée, expertises prouvées | Validée ; données réelles à confirmer |
+| DEC-022 | Études de cas et diagrammes interactifs React Flow ; transparence sur les contributions humaines et assistées par IA | Validée ; intégration dans #35 |
+| DEC-023 | Deux widgets Activité GitHub et Changelog ; données publiques au build et reconstruction quotidienne via Actions après autorisation de publication | Validée ; #36 et #14 ; aucun push automatique sur main, aucun agent |
+| DEC-024 | Formations initiales/continues, passions et engagements ; trois variantes de CV consultables/téléchargeables en FR/EN | Validée ; PDFs à fournir/valider ; génération automatique non arbitrée |
+| DEC-025 | Contact centralisé : LinkedIn, GitHub, Malt, e-mail, Formspree, nature de la prise de contact obligatoire | Validée ; coordonnées, endpoint et confidentialité à confirmer |
+
+Voir [CONTENT.md](CONTENT.md). Les ateliers valident les concepts et le périmètre, pas la véracité de dates, diplômes, métriques, captures, liens ou informations professionnelles spécifiques. Les données et formulations finales doivent être approuvées. Le modèle typé, le découpage en six tâches et les mécanismes de repli sont des choix d'implémentation proposés dans les contrats. Aucune exécution, activation de schedule, publication ou ouverture du dépôt n'est autorisée par cette documentation.
+
+## Livraison DEV-005 (27/11/2026)
+
+DEC-016/017 : Zustand persist v1, historique limité à 50 transactions en mémoire et reset de disposition annulable livrés par #39, CI verte. Voir ARCHITECTURE.md pour le modèle concret et les limites. La préférence de langue est préparée mais l'internationalisation demeure #26.
