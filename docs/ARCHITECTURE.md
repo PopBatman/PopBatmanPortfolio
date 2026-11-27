@@ -1,6 +1,6 @@
-# Architecture V1 — proposition
+# Architecture V1
 
-Statut : à valider par le propriétaire. Issues #1 et #2. Date : 2026-11-26.
+Socle validé par fusion de la PR #15. Évolution UX proposée à la suite de la maquette approuvée (Issues #10 et #11).
 Ce document cadre la solution ; il n'autorise aucun agent, déploiement ou changement de visibilité.
 
 ## 1. Produit
@@ -31,14 +31,17 @@ Contenus versionnés + composants React
 
 Alternative : Astro ou HTML statique seraient plus légers ; Next.js est proposé pour rester dans l'écosystème React déjà maîtrisé. Ne pas ajouter de framework secondaire.
 
-### Routes et contenus
+### Interface et contenus
 
-- / : proposition de valeur, expertises, projets phares, contact.
-- /expertises/ : prestations et méthodes.
-- /realisations/ : index ; /realisations/[slug]/ : études de cas.
-- /parcours/ : expérience et formation publiables.
-- /contact/ : liens externes et mailto.
-- Laboratoire IA : extension ultérieure. Pas de formulaire serveur ni d'analytics en V1 sans décision distincte.
+La maquette validée remplace la navigation multi-pages initialement proposée par un dashboard unique. La sidebar est une bibliothèque et une barre d'actions, pas un menu de navigation. Le détail des interactions et du design est dans [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md).
+
+- Route principale : workspace et composition initiale, contenus consultables sans personnalisation.
+- Widgets : catalogue de composants React, contenu statique versionné. Partie interactive côté client ; données de profil disponibles au rendu initial pour SEO et lisibilité.
+- Modales : profil, contact, détail des projets/expériences, préférences ; aucun serveur applicatif.
+- État local : disposition, dimensions, ordre de superposition, thème et langue ; persistance locale dans le navigateur. Pas de compte ni de synchronisation distante.
+- Responsive : workspace libre desktop/tablette compatible, pile verticale mobile ; pas de scroll horizontal ni canvas infini.
+- Les routes statiques supplémentaires de partage/SEO ne sont pas un choix validé ; décider seulement si nécessaire sans introduire une navigation concurrente.
+- Choix du moteur de drag/resize et mécanisme de contact reportés à un arbitrage dédié. Aucun service externe ou nouvelle dépendance n'est validé ici.
 
 ### Contraintes de publication
 
@@ -49,9 +52,9 @@ Le dépôt actuel est PopBatman/PopBatmanPortfolio, privé. L'URL Pages par déf
 ### Critères d'acceptation proposés
 
 - Build statique reproductible ; toutes les routes et ressources accessibles, y compris sous le préfixe de publication.
-- Responsive à 375, 768 et 1440 px ; navigation clavier, focus visible, contrastes et textes alternatifs ; objectif WCAG 2.2 AA sur les pages clés.
+- Responsive à 375, 768 et 1440 px ; navigation clavier, focus visible, contrastes et textes alternatifs ; objectif WCAG 2.2 AA sur les vues et interactions clés.
 - Titres et descriptions uniques, métadonnées sociales, sitemap et URL canoniques cohérents avec l'URL finale ; pas de données confidentielles ni de statistiques inventées.
-- Objectif Lighthouse mobile >= 90 en performance, accessibilité et SEO sur accueil et étude de cas (environnement de test documenté, résultats réels à relever ; score non équivalent à conformité WCAG).
+- Objectif Lighthouse mobile >= 90 en performance, accessibilité et SEO sur le dashboard et les vues de détail pertinentes (environnement de test documenté, résultats réels à relever ; score non équivalent à conformité WCAG).
 - Contrôles CI : format/lint, typecheck, tests pertinents, build et smoke tests du rendu exporté. Validation visuelle humaine avant publication.
 
 ## 2. Chaîne agentique
