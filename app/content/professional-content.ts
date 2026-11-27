@@ -1,0 +1,222 @@
+export type Locale = "fr" | "en";
+export type Localized<T> = { fr: T; en?: T };
+type Status = "draft" | "approved";
+
+type EntityFields = {
+  profile: { initials: string };
+  availability: {
+    terms: Localized<{
+      contracts: string[];
+      regions: string[];
+      modes: string[];
+      targets: string[];
+    }>;
+  };
+  experience: { period?: string };
+  technology: {
+    domain?: string;
+    usage?: "professional" | "personal" | "learning";
+  };
+  expertise: object;
+  project: {
+    stage?: "prototype" | "experiment" | "development" | "operational";
+  };
+  architecture: object;
+  education: { outcome?: "earned" | "in-progress" | "self-taught" };
+  interest: object;
+  document: {
+    variant: "general" | "technical" | "leadership";
+    language: Locale;
+    path?: string;
+  };
+  link: {
+    channel: "github" | "linkedin" | "malt" | "email" | "other";
+    href?: string;
+  };
+};
+
+export type EntityKind = keyof EntityFields;
+export type EntityId<K extends EntityKind = EntityKind> = `${K}:${string}`;
+type Copy = { status: Status; title: string; paragraphs?: string[] };
+
+export type Entity<K extends EntityKind = EntityKind> = {
+  [Kind in K]: EntityFields[Kind] & {
+    kind: Kind;
+    id: EntityId<Kind>;
+    status: Status;
+    copy: Localized<Copy>;
+    related: readonly EntityId[];
+  };
+}[K];
+
+export type ContentCatalog = { version: 1; entities: readonly Entity[] };
+
+export const PROFILE_ID = "profile:positionnement";
+export const AVAILABILITY_ID = "availability:opportunites";
+
+function expertise(
+  id: EntityId<"expertise">,
+  title: string,
+): Entity<"expertise"> {
+  return {
+    id,
+    kind: "expertise",
+    status: "approved",
+    copy: { fr: { status: "approved", title } },
+    related: [PROFILE_ID],
+  };
+}
+
+export const profile: Entity<"profile"> = {
+  id: PROFILE_ID,
+  kind: "profile",
+  status: "approved",
+  initials: "PW",
+  copy: {
+    fr: {
+      status: "approved",
+      title: "Développeur polyvalent",
+      paragraphs: ["Concevoir, développer, industrialiser."],
+    },
+  },
+  related: [
+    "expertise:fullstack",
+    "expertise:architecture-logicielle",
+    "expertise:pilotage-technique",
+    "expertise:ia-agentique",
+    AVAILABILITY_ID,
+  ],
+};
+
+export const availability: Entity<"availability"> = {
+  id: AVAILABILITY_ID,
+  kind: "availability",
+  status: "approved",
+  copy: {
+    fr: { status: "approved", title: "À l’écoute de nouvelles opportunités" },
+  },
+  terms: {
+    fr: {
+      contracts: ["CDI", "Freelance"],
+      regions: ["France", "International"],
+      modes: ["Hybride", "Télétravail"],
+      targets: [
+        "FullStack",
+        "Architecture logicielle",
+        "Chef de projet technique",
+        "IA / automatisation",
+        "DevOps",
+      ],
+    },
+  },
+  related: [PROFILE_ID],
+};
+
+export const professionalContent: ContentCatalog = {
+  version: 1,
+  entities: [
+    profile,
+    availability,
+    expertise("expertise:fullstack", "FullStack"),
+    expertise("expertise:architecture-logicielle", "Architecture logicielle"),
+    expertise("expertise:pilotage-technique", "Pilotage technique"),
+    expertise("expertise:ia-agentique", "IA agentique"),
+  ],
+};
+
+export function approvedCopy(entity: Entity, locale: Locale) {
+  const copy = entity.copy[locale];
+  return entity.status === "approved" && copy?.status === "approved"
+    ? copy
+    : undefined;
+}
+
+export function getPublishedDetail(id: EntityId, locale: Locale) {
+  const entity = professionalContent.entities.find(
+    (candidate) => candidate.id === id,
+  );
+  if (!entity) return;
+  const copy = approvedCopy(entity, locale);
+  if (copy) return { entity, copy };
+}
+
+export function relatedDetails(entity: Entity, locale: Locale) {
+  return entity.related.flatMap((id) => {
+    const detail = getPublishedDetail(id, locale);
+    return detail ? [detail] : [];
+  });
+}
+
+export function validateContent(catalog: ContentCatalog): string[] {
+  const errors: string[] = [];
+  const index = new Map<EntityId, Entity>();
+  for (const entity of catalog.entities) {
+    const [kind, slug, ...rest] = entity.id.split(":");
+    if (
+      kind !== entity.kind ||
+      !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug ?? "") ||
+      rest.length
+    ) {
+      errors.push(`Identifiant invalide : ${entity.id}`);
+    }
+    if (index.has(entity.id))
+      errors.push(`Identifiant dupliqué : ${entity.id}`);
+    index.set(entity.id, entity);
+
+    if (entity.status === "approved" && !approvedCopy(entity, "fr")) {
+      errors.push(`Version française non approuvée : ${entity.id}`);
+    }
+    for (const locale of ["fr", "en"] as const) {
+      const copy = approvedCopy(entity, locale);
+      if (!copy) continue;
+      if (
+        !copy.title.trim() ||
+        copy.paragraphs?.some((paragraph) => !paragraph.trim())
+      ) {
+        errors.push(`Texte approuvé vide : ${entity.id} (${locale})`);
+      }
+      if (entity.kind === "availability") {
+        const terms = entity.terms[locale];
+        if (
+          !terms ||
+          Object.values(terms).some(
+            (items) => !items.length || items.some((item) => !item.trim()),
+          )
+        ) {
+          errors.push(`Modalités incomplètes : ${entity.id} (${locale})`);
+        }
+      }
+    }
+    if (
+      entity.status === "approved" &&
+      entity.kind === "document" &&
+      !/^\/(?!\/)[\w/-]+\.pdf$/i.test(entity.path ?? "")
+    ) {
+      errors.push(`PDF local requis : ${entity.id}`);
+    }
+    if (entity.status === "approved" && entity.kind === "link") {
+      const protocol =
+        entity.channel === "email"
+          ? /^mailto:[^\s@]+@[^\s@]+$/
+          : /^https:\/\/[^\s/]+/;
+      if (!protocol.test(entity.href ?? ""))
+        errors.push(`Lien professionnel invalide : ${entity.id}`);
+    }
+  }
+  for (const entity of catalog.entities) {
+    const seen = new Set<EntityId>();
+    for (const id of entity.related) {
+      const target = index.get(id);
+      if (
+        !target ||
+        id === entity.id ||
+        seen.has(id) ||
+        (entity.status === "approved" && !approvedCopy(target, "fr"))
+      ) {
+        errors.push(`Référence invalide : ${entity.id} → ${id}`);
+      }
+      seen.add(id);
+    }
+  }
+  return errors;
+}
